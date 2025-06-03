@@ -1,0 +1,178 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Галерея - ToEternity</title>
+    <link rel="icon" href="{% static 'img/ToEternity_LOGO.png' %}" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Можна додати інші стилі, якщо потрібно */
+        
+         /* Стилі для модального вікна */
+        #imageModal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Ефект при наведенні на зображення в галереї (опціонально, але красиво) */
+        @media (hover: hover) {
+            .image-zoom-container:hover img {
+                transform: scale(1.1);
+            }
+            img {
+                 transition: transform 0.3s ease-in-out;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="{% url 'home' %}" class="flex items-center space-x-2 group">
+                <img src="{% static 'img/ToEternity_shop.png' %}" alt="Логотип ToEternity" class="h-8">
+            </a>
+            <a href="{% url 'home' %}" class="text-gray-600 hover:text-purple-600 transition duration-300">
+                <i class="fas fa-arrow-left fa-lg mr-2"></i> Go Home
+            </a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-10">
+        <h1 class="text-4xl font-bold text-gray-800 mb-8 text-center">Gallery of arts</h1>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for art in artworks %}
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
+                <div class="image-zoom-container relative w-full h-64 overflow-hidden cursor-pointer">
+                    <img src="{{ art.image_preview.url }}" alt="{{ art.title }}" class="w-full h-full object-cover transition-transform duration-300 ease-in-out" data-full-src="{{ art.image_full.url }}">
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-semibold mb-2 text-purple-700">{{ art.title }}</h3>
+                    <p class="text-gray-600 text-sm mb-4 flex-grow">{{ art.description|linebreaksbr }}</p>
+                    <div class="flex justify-between items-center mt-auto pt-4">
+                        <div class="flex items-center">
+                            <button class="like-button text-gray-400 hover:text-red-500 transition duration-200 focus:outline-none text-2xl" data-item-id="artwork-{{ art.id }}">
+                                <i class="far fa-heart"></i>
+                            </button>
+                            <span class="ml-1 text-sm font-semibold text-gray-600">0</span>
+                        </div>
+                        {% if art.instagram_link %}
+                        <a href="{{ art.instagram_link }}" target="_blank" class="text-pink-500 hover:text-pink-600 transition duration-300">
+                            <i class="fab fa-instagram fa-2x"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-10 mt-10">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-sm">&copy; {% now "Y" %} ToEternity.shop. All rights reserved.</p>
+        </div>
+        <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-85 justify-center items-center p-4 z-[100] hidden opacity-0" style="transition: opacity 0.3s ease-out;">
+    <img id="modalImage" src="" alt="Повноекранне зображення" class="max-w-[90%] max-h-[90%] object-contain shadow-lg rounded">
+    <button id="closeModalButton" class="absolute top-3 right-3 sm:top-5 sm:right-5 text-white text-4xl hover:text-gray-300 transition-colors focus:outline-none">&times;</button>
+</div>
+<footer class="bg-gray-800 text-gray-300 py-10 mt-10">
+    </footer>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    // ===============================================
+    // ===== КОД ДЛЯ МОДАЛЬНОГО ВІКНА ЗОБРАЖЕНЬ =====
+    // ===============================================
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const closeModalButton = document.getElementById('closeModalButton');
+    const imageContainers = document.querySelectorAll('.image-zoom-container');
+
+    if (imageModal && modalImage && closeModalButton) {
+        imageContainers.forEach(container => {
+            container.addEventListener('click', () => {
+                const imageToZoom = container.querySelector('img');
+                if (imageToZoom && imageToZoom.dataset.fullSrc) {
+                    modalImage.src = imageToZoom.dataset.fullSrc; 
+                    imageModal.classList.remove('hidden');
+                    setTimeout(() => imageModal.classList.add('active'), 10);
+                }
+            });
+        });
+
+        const closeModalWindow = () => {
+            imageModal.classList.remove('active');
+            setTimeout(() => imageModal.classList.add('hidden'), 300);
+        }
+        closeModalButton.addEventListener('click', closeModalWindow);
+        imageModal.addEventListener('click', (e) => e.target === imageModal && closeModalWindow());
+        document.addEventListener('keydown', (e) => e.key === 'Escape' && closeModalWindow());
+    }
+
+    // ======================================
+    // ===== КОД ДЛЯ СИСТЕМИ ЛАЙКІВ =====
+    // ======================================
+    function loadInitialLikes() {
+        fetch('/api/get_all_likes')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.likes) {
+                    document.querySelectorAll('.like-button').forEach(button => {
+                        const itemId = button.dataset.itemId;
+                        const likeCounterSpan = button.nextElementSibling;
+                        const heartIcon = button.querySelector('i');
+
+                        if (data.likes.hasOwnProperty(itemId)) {
+                            const count = data.likes[itemId];
+                            likeCounterSpan.textContent = count;
+                            if (count > 0) {
+                                heartIcon.classList.remove('far', 'text-gray-400');
+                                heartIcon.classList.add('fas', 'text-red-500');
+                            }
+                        } else {
+                            likeCounterSpan.textContent = '0';
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Помилка завантаження лайків:', error));
+    }
+
+    document.querySelectorAll('.like-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const itemId = button.dataset.itemId;
+            const heartIcon = button.querySelector('i');
+            const isLiked = heartIcon.classList.contains('fas');
+            const apiEndpoint = isLiked ? `/api/unlike/${itemId}` : `/api/like/${itemId}`;
+
+            fetch(apiEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const likeCounterSpan = button.nextElementSibling;
+                        likeCounterSpan.textContent = data.current_likes_on_server;
+                        if (data.current_likes_on_server > 0) {
+                            heartIcon.classList.remove('far', 'text-gray-400');
+                            heartIcon.classList.add('fas', 'text-red-500');
+                        } else {
+                            heartIcon.classList.remove('fas', 'text-red-500');
+                            heartIcon.classList.add('far', 'text-gray-400');
+                        }
+                    }
+                })
+                .catch(error => console.error('Помилка відправки лайка:', error));
+        });
+    });
+
+    // Завантажуємо лайки при відкритті сторінки
+    loadInitialLikes();
+});
+</script>
+    </body>
+</html>

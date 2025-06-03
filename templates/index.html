@@ -1,0 +1,1036 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToEternity</title> <link rel="icon" href="{% static 'img/ToEternity_LOGO.png' %}" type="image/png"> <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        .mobile-menu {
+            display: none;
+        }
+        .mobile-menu.active {
+            display: block;
+        }
+        .scroll-mt-header {
+            scroll-margin-top: 70px;
+        }
+        @media (hover: hover) and (min-width: 1024px) {
+            .image-zoom-container:hover img {
+                transform: scale(1.1);
+            }
+        }
+        #imageModal.active {
+            display: flex;
+            opacity: 1;
+        }
+        #imageModal {
+            transition: opacity 0.3s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeInUp {
+            opacity: 0;
+            animation: fadeInUp 0.7s ease-out forwards;
+        }
+
+        /* Стиль для шапки при прокрутці */
+        header {
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .header-scrolled {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Анімація підкреслення для пунктів меню в шапці */
+        header nav > a,
+        header nav .group > a {
+            position: relative;
+            text-decoration: none;
+            display: inline-block; 
+            padding-bottom: 6px; 
+        }
+        header nav > a::after,
+        header nav .group > a::after {
+            content: '';
+            position: absolute;
+            width: 0%;
+            height: 2px;
+            background-color: #7C3AED; /* purple-600 */
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: width 0.3s ease-in-out;
+        }
+        header nav > a:hover::after,
+        header nav .group > a:hover::after {
+            width: 100%;
+        }
+        /* Приховування смуги прокрутки для каруселі */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Стилі для анімованих кульок */
+/* Оновлені стилі для контейнера кульок - тепер він на весь екран */
+#balloon-container {
+    position: fixed; /* Фіксоване положення відносно вікна браузера */
+    top: 0;
+    left: 0;
+    width: 100vw; /* 100% ширини вікна */
+    height: 100vh; /* 100% висоти вікна */
+    pointer-events: none; /* Щоб не заважав клікам на елементи під ним */
+    overflow: hidden; /* Щоб кульки, які вилітають за межі екрану, не створювали скрол */
+    z-index: 60; /* Має бути ПІД сповіщенням (у якого z-[70]), 
+                     але НАД основним контентом сторінки та, можливо, над шапкою (z-50) */
+}
+
+/* Стилі для .balloon та @keyframes flyUp залишаються такими, як я надавав раніше, 
+   де bottom: 105vh; для кінцевої точки анімації.
+   Переконайтеся, що вони у вас є і правильні.
+*/
+.balloon { /* (цей стиль вже має бути у вас) */
+    position: absolute;
+    width: 40px; 
+    height: 55px; 
+    background-color: red; 
+    border-radius: 50% / 40% 40% 60% 60%; 
+    transform: rotate(-20deg); 
+    box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2); 
+    opacity: 0; 
+    will-change: transform, opacity, bottom;
+    /* CSS змінні --sway та --rotation будуть встановлені JavaScript */
+    /* Анімація буде застосована JavaScript */
+}
+
+.balloon::after { /* (цей стиль вже має бути у вас) */
+    content: '';
+    position: absolute;
+    bottom: -10px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 20px; 
+    background-color: rgba(255, 255, 255, 0.5); 
+}
+
+@keyframes flyUp { /* (цей стиль вже має бути у вас, переконайтесь, що bottom: 105vh) */
+    0% {
+        bottom: -100px; 
+        opacity: 0;
+        transform: translateX(0vw) rotate(-20deg); 
+    }
+    10%, 15% { 
+        opacity: 0.9;
+    }
+    85%, 90% { 
+        opacity: 0.9;
+    }
+    100% {
+        bottom: 105vh; 
+        opacity: 0;
+        transform: translateX(calc(var(--sway) * 1vw)) rotate(calc(var(--rotation) * 1deg)); 
+    }
+}
+.text-animate-out {
+    transform: scale(0.8) translateY(30px); /* Зменшення та невеликий зсув вниз */
+    opacity: 0;
+    /* transition-delay: 0s !important; Може знадобитися, якщо є інші transition */
+}
+
+/* Стилі для розгортаючогося контенту */
+.collection-details-content {
+    transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, margin-top 0.5s ease-in-out, margin-bottom 0.5s ease-in-out;
+}
+
+.collection-details-content.expanded {
+    max-height: 500px; /* Встановіть достатню висоту, щоб вмістити ваш контент */
+    opacity: 1;
+    margin-top: 0.75rem; /* mb-3 */
+    margin-bottom: 0.75rem; /* mb-3 */
+}
+
+/* Анімація обертання стрілочки */
+.details-toggle-button.expanded .fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+    </style>
+    <meta name="description" content="Discover the world of digital art from ToEternity. Unique art, exclusive collections of clothing and furniture for IMVU. Order personalized works.">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<header class="bg-white sticky top-0 z-50 transition-all duration-300 ease-in-out">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="{% url 'home' %}" class="flex items-center space-x-2 group">
+            <img src="{% static 'img/ToEternity_shop.png' %}" alt="Логотип ToEternity" class="h-8"> 
+            <span class="text-2xl font-bold text-gray-900 group-hover:text-black transition-colors duration-300">
+            </span>
+        </a>
+        
+        <nav class="hidden md:flex space-x-4 xl:space-x-6 items-center">
+            <a href="#arts" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1">Art</a>
+            <a href="#special-offers" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1">Special offers</a>
+            <a href="#collections" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1">Collections</a>
+            
+            <div class="relative group pb-2 flex items-center"> 
+                <a href="#digital-fashion" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1 rounded-md inline-flex items-center">
+                    <span>Clothing</span>
+                    <i class="fas fa-chevron-down fa-xs ml-2 transition-transform duration-200 group-hover:rotate-180"></i>
+                </a>
+                <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden group-hover:block transition-all duration-300 opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100">
+                    <div class="relative group/submenu pr-1">
+                        <a href="#digital-fashion-men" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 flex justify-between items-center">
+                            <span>Men</span>
+                            <i class="fas fa-chevron-right fa-xs"></i>
+                        </a>
+                        <div class="absolute left-full top-0 mt-0 ml-1 w-48 bg-white rounded-md shadow-lg py-1 z-30 hidden group-hover/submenu:block transition-all duration-300 opacity-0 group-hover/submenu:opacity-100 transform scale-95 group-hover/submenu:scale-100">
+                            <a href="#digital-fashion-men-top" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Top</a>
+                            <a href="#digital-fashion-men-bottom" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Bottom</a>
+                            <a href="#digital-fashion-men-shoes" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Shoes</a>
+                            <a href="#digital-fashion-men-accessories" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Accessories</a>
+                        </div>
+                    </div>
+                    <div class="relative group/submenu pr-1">
+                        <a href="#digital-fashion-women" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 flex justify-between items-center">
+                            <span>Women</span>
+                            <i class="fas fa-chevron-right fa-xs"></i>
+                        </a>
+                        <div class="absolute left-full top-0 mt-0 ml-1 w-48 bg-white rounded-md shadow-lg py-1 z-30 hidden group-hover/submenu:block transition-all duration-300 opacity-0 group-hover/submenu:opacity-100 transform scale-95 group-hover/submenu:scale-100">
+                            <a href="#digital-fashion-women-top" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Top</a>
+                            <a href="#digital-fashion-women-bottom" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Bottom</a>
+                            <a href="#digital-fashion-women-shoes" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Shoes</a>
+                            <a href="#digital-fashion-women-accessories" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Accessories</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="#furniture" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1">Furniture</a>
+            <a href="#creators-spotlight" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1">Creators</a>
+        </nav>
+        <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-purple-600 focus:outline-none">
+            <i class="fas fa-bars fa-lg"></i>
+        </button>
+    </div>
+    <div id="mobile-menu" class="mobile-menu md:hidden bg-white shadow-lg absolute w-full">
+        <a href="#arts" class="block px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">Art</a>
+        <a href="#special-offers" class="block px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">Special offers</a>
+        <a href="#collections" class="block px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">Collections</a>
+        <div>
+            <button onclick="toggleMobileSubmenu('digital-fashion-submenu-mobile')" class="w-full text-left flex justify-between items-center px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">
+                <span>Clothing</span>
+                <i class="fas fa-chevron-down fa-xs"></i>
+            </button>
+            <div id="digital-fashion-submenu-mobile" class="hidden pl-6">
+                <div>
+                    <button onclick="toggleMobileSubmenu('digital-fashion-men-submenu-mobile')" class="w-full text-left flex justify-between items-center px-4 py-2 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">
+                        <span>Men</span>
+                        <i class="fas fa-chevron-right fa-xs"></i>
+                    </button>
+                    <div id="digital-fashion-men-submenu-mobile" class="hidden pl-4">
+                        <a href="#digital-fashion-men-top" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Top</a>
+                        <a href="#digital-fashion-men-bottom" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Bottom</a>
+                        <a href="#digital-fashion-men-shoes" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Shoes</a>
+                        <a href="#digital-fashion-men-accessories" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Accessories</a>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="toggleMobileSubmenu('digital-fashion-women-submenu-mobile')" class="w-full text-left flex justify-between items-center px-4 py-2 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">
+                        <span>Women</span>
+                        <i class="fas fa-chevron-right fa-xs"></i>
+                    </button>
+                    <div id="digital-fashion-women-submenu-mobile" class="hidden pl-4">
+                        <a href="#digital-fashion-women-top" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Top</a>
+                        <a href="#digital-fashion-women-bottom" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Bottom</a>
+                        <a href="#digital-fashion-women-shoes" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Shoes</a>
+                        <a href="#digital-fashion-women-accessories" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Accessories</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a href="#furniture" class="block px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">Furniture</a>
+        <a href="#creators-spotlight" class="block px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">Creators</a>
+    </div>
+</header>
+
+<section id="hero-banner" class="text-white py-6 md:py-6 relative overflow-hidden bg-cover bg-center" style="background-image: url('{% static 'img/img_top.PNG' %}');">
+    <div id="particles-hero" class="absolute top-0 left-0 w-full h-full z-[1]"></div>
+    <div class="container mx-auto px-6 text-center relative z-[2]">
+        <h1 id="hero-title" class="text-3xl md:text-5xl font-bold mb-4 transition-all duration-[1500ms] ease-in-out">Discover the world of digital art with us.</h1>
+        <p id="hero-subtitle" class="text-lg md:text-xl mb-8 transition-all duration-[1500ms] ease-in-out">The best artworks and unique digital clothing from talented creators.</p>
+        <div id="hero-achievements" class="mt-6 mb-6 flex flex-nowrap justify-center items-center gap-4 sm:gap-6 text-white transition-all duration-[1500ms] ease-in-out"> 
+            <div class="flex flex-col items-center text-center px-1">
+                <img src="{% static 'img/Discover.PNG' %}" alt="Нагорода Discover" class="h-20 w-20 mb-1"> <p class="text-xs font-semibold uppercase tracking-normal">Discover</p>
+                <p class="text-[10px] opacity-80">x26</p> 
+            </div>
+            <div class="flex flex-col items-center text-center px-1">
+                <img src="{% static 'img/TopEditTuesday.PNG' %}" alt="Нагорода TopEditTuesday" class="h-20 w-20 mb-1"> <p class="text-xs font-semibold uppercase tracking-normal">TopEditTuesday</p>
+                <p class="text-xs opacity-80">x2</p>
+            </div>
+            <div class="flex flex-col items-center text-center px-1">
+                <i class="fas fa-star fa-lg text-yellow-400 mb-1"></i> 
+                <img src="{% static 'img/IMVURunnerUp.PNG' %}" alt="Нагорода IMVURunnerUp" class="h-20 w-20 mb-1"> <p class="text-xs font-semibold uppercase tracking-normal">IMVURunnerUp</p>
+                <p class="text-[10px] opacity-80">x1</p>
+            </div>
+        </div>
+    </div>
+</section>
+    
+<div id="products-entry" class="scroll-mt-header"></div>
+
+<main class="container mx-auto px-6 py-6">
+    <section id="arts" class="mb-16 scroll-mt-header">
+    <h2 class="text-3xl font-semibold text-gray-700 mb-8 text-center">ART</h2>
+    <div class="
+        flex overflow-x-auto space-x-4 pb-6         
+        sm:grid sm:grid-cols-2 sm:gap-8 sm:space-x-0 
+        lg:grid-cols-3                               
+        snap-x snap-mandatory                        
+        no-scrollbar                                 
+        md:overflow-visible md:pb-0                  
+    ">
+{# ===== ПОЧАТОК ДИНАМІЧНОГО БЛОКУ ===== #}
+                    {# Цей цикл пройде по кожній роботі, яку ми передали з views #}
+                    {% for art in artworks %}
+                    <div class="flex-none w-10/12 sm:w-auto snap-center product-card-carousel-item">
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
+                            <div class="image-zoom-container relative w-full h-64 overflow-hidden cursor-pointer">
+                                <img src="{{ art.image_preview.url }}" 
+                                     alt="{{ art.title }}" class="w-full h-full object-cover transition-transform duration-300 ease-in-out"
+                                     data-full-src="{{ art.image_full.url }}">
+                            </div>
+                            <div class="p-6 flex flex-col flex-grow"> 
+                                <h3 class="text-xl font-semibold mb-2 text-purple-700">{{ art.title }}</h3>
+                                <p class="text-gray-600 text-sm mb-4 flex-grow">{{ art.description|linebreaksbr }}</p>
+                                <div class="flex justify-between items-center mt-auto pt-4">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex items-center">
+                                            <button class="like-button text-gray-400 hover:text-red-500 transition duration-200 focus:outline-none text-2xl" 
+                                                    data-item-id="artwork-{{ art.id }}">
+                                                <i class="far fa-heart"></i>
+                                            </button>
+                                            <span class="ml-1 text-sm font-semibold text-gray-600">0</span>
+                                        </div>
+                                    </div>
+                                    {% if art.instagram_link %}
+                                    <a href="{{ art.instagram_link }}" target="_blank" title="Автор: {{ art.title }}" class="text-pink-500 hover:text-pink-600 transition duration-300">
+                                        <i class="fab fa-instagram fa-2x"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {# ===== КІНЕЦЬ ДИНАМІЧНОГО БЛОКУ ===== #}
+
+                    <div class="flex-none w-10/12 sm:w-auto snap-center product-card-carousel-item flex items-center justify-center">
+                        <a href="{% url 'gallery' %}"
+   class="flex flex-col items-center justify-center text-center p-6 
+          bg-gradient-to-br from-purple-500 to-pink-500 
+          hover:from-purple-600 hover:to-pink-600 
+          text-white rounded-xl shadow-lg h-full w-full 
+          transition-all duration-300 transform hover:scale-105">
+    <i class="fas fa-plus-circle fa-4x mb-6"></i>
+    <h3 class="text-2xl font-semibold">More Artworks</h3>
+    <p class="text-sm mt-2">Browse Art Catalog</p>
+</a>
+                    </div>
+    </div>
+    </div>
+</section>
+
+<section id="special-offers" class="py-6 md:py-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white scroll-mt-header relative overflow-hidden">
+    <div id="particles-special" class="absolute top-0 left-0 w-full h-full z-0"></div>
+    <div class="container mx-auto px-6 text-center relative z-10">
+        <h2 id="special-title" class="text-2xl md:text-3xl font-bold mb-6 transition-all duration-[1500ms] ease-in-out">Special Offers!</h2>
+    <p id="special-text" class="text-lg md:text-xl mb-6 max-w-3xl mx-auto transition-all duration-[1500ms] ease-in-out">Looking for something unique?<br>
+            We’ll make it happen!<br>
+            Contact us to discuss your ideas.<br><br>
+        <a href="https://www.instagram.com/toeternity.vu/" class="bg-white text-purple-600 font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-gray-100 transition duration-300 text-lg">
+            Discuss an order <i class="fas fa-envelope ml-2"></i>
+        </a>
+    </p>    
+    </div>
+</section>
+
+<section id="collections" class="mb-16 scroll-mt-header">
+    <h2 class="text-3xl font-semibold text-gray-700 mb-8 text-center">Collections</h2> <div class="
+        flex overflow-x-auto space-x-4 pb-6
+        sm:grid sm:grid-cols-2 sm:gap-8 sm:space-x-0
+        lg:grid-cols-3
+        snap-x snap-mandatory
+        no-scrollbar
+        md:overflow-visible md:pb-0
+    ">
+        <div class="flex-none w-10/12 sm:w-auto snap-center product-card-carousel-item">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
+                <div class="image-zoom-container relative w-full h-64 overflow-hidden cursor-pointer">
+                    <img src="{% static 'img/office_preview.JPG' %}" alt="Office_siren" class="w-full h-full object-cover transition-transform duration-300 ease-in-out" data-full-src="{% static 'img/office.JPG' %}"> </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-semibold mb-2 text-purple-700">OFFICE SIREN</h3> 
+                    <p class="text-gray-600 text-sm mb-4 flex-grow">Office Siren collection</p>
+                    
+                    <button type="button" 
+                            class="details-toggle-button mt-2 mb-3 w-full bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-300 text-sm focus:outline-none flex items-center justify-center" 
+                            aria-expanded="false" 
+                            aria-controls="collection-details-office-siren">
+                        More info <i class="fas fa-chevron-down fa-xs ml-2 transform transition-transform duration-200"></i>
+                    </button>
+
+                    <div id="collection-details-office-siren" 
+                         class="collection-details-content max-h-0 opacity-0 overflow-hidden transition-all duration-500 ease-in-out">
+                        <p class="text-xs text-gray-500 mb-1 mt-2">This collection includes:</p>
+                        <ul class="list-disc list-inside text-xs text-gray-700 space-y-1">
+                            <li><a href="https://www.imvu.com/next/shop/product-70842871/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Beige suit</a></li>
+                            <li><a href="https://www.imvu.com/next/shop/product-70843003/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Chocolate suit</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-auto pt-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <button class="like-button text-gray-400 hover:text-red-500 transition duration-200 focus:outline-none text-2xl" data-item-id="cloth_office_siren"> 
+                                    <i class="far fa-heart"></i>
+                                </button>
+                                <span class="ml-1 text-sm font-semibold text-gray-600">0</span>
+                            </div>
+                        </div>
+                        <a href="https://www.instagram.com/toeternity.vu/" target="_blank" title="Дизайнер: ToEternity" class="text-pink-500 hover:text-pink-600 transition duration-300"> <i class="fab fa-instagram fa-2x"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-none w-10/12 sm:w-auto snap-center product-card-carousel-item">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
+                <div class="image-zoom-container relative w-full h-64 overflow-hidden cursor-pointer">
+                    <img src="{% static 'img/sammer_green – preview.JPG' %}" alt="Bathing_season_collection" class="w-full h-full object-cover transition-transform duration-300 ease-in-out" data-full-src="{% static 'img/sammer_green.JPG"> </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-semibold mb-2 text-purple-700">Bathing season collection</h3>
+                    <p class="text-gray-600 text-sm mb-4 flex-grow">Go swimming?</p>
+                    
+                    <button type="button" 
+                            class="details-toggle-button mt-2 mb-3 w-full bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-300 text-sm focus:outline-none flex items-center justify-center" 
+                            aria-expanded="false" 
+                            aria-controls="collection-details-bathing-season"> More info <i class="fas fa-chevron-down fa-xs ml-2 transform transition-transform duration-200"></i>
+                    </button>
+
+                    <div id="collection-details-bathing-season" class="collection-details-content max-h-0 opacity-0 overflow-hidden transition-all duration-500 ease-in-out">
+                        <p class="text-xs text-gray-500 mb-1 mt-2">This collection includes:</p>
+                        <ul class="list-disc list-inside text-xs text-gray-700 space-y-1">
+                            <li><a href="https://www.imvu.com/next/shop/product-70506218/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Lily in Hair</a></li>
+                            <li><a href="https://www.imvu.com/next/shop/product-71046135/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Coconut drink</a></li>
+                            <li><a href="https://www.imvu.com/next/shop/product-71045377/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Platform Slides</a></li>
+                            <li><a href="https://www.imvu.com/next/shop/product-70515674/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Swimsuit</a></li>
+                            <li><a href="https://www.imvu.com/next/shop/product-71045649/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Windy Blonde</a></li>
+                            <li><a href="https://www.imvu.com/next/shop/product-71044993/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Bag Transparent</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-auto pt-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <button class="like-button text-gray-400 hover:text-red-500 transition duration-200 focus:outline-none text-2xl" data-item-id="cloth_bathing_season"> <i class="far fa-heart"></i>
+                                </button>
+                                <span class="ml-1 text-sm font-semibold text-gray-600">0</span>
+                            </div>
+                        </div>
+                        <a href="https://www.instagram.com/toeternity.vu/" target="_blank" title="Дизайнер: ToEternity" class="text-pink-500 hover:text-pink-600 transition duration-300"> <i class="fab fa-instagram fa-2x"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-none w-10/12 sm:w-auto snap-center product-card-carousel-item">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
+                <div class="image-zoom-container relative w-full h-64 overflow-hidden cursor-pointer">
+                    <img src="{% static 'img/sammer_yellow_preview.JPG' %}" alt="Summer_time" class="w-full h-full object-cover transition-transform duration-300 ease-in-out" data-full-src="{% static 'img/sammer_yellow.JPG"> </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-xl font-semibold mb-2 text-purple-700">Summer time</h3>
+                    <p class="text-gray-600 text-sm mb-4 flex-grow">Ray of sunshine</p>
+                    
+                    <button type="button" 
+                            class="details-toggle-button mt-2 mb-3 w-full bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-300 text-sm focus:outline-none flex items-center justify-center" 
+                            aria-expanded="false" 
+                            aria-controls="collection-details-summer-time"> More info <i class="fas fa-chevron-down fa-xs ml-2 transform transition-transform duration-200"></i>
+                    </button>
+
+                    <div id="collection-details-summer-time" class="collection-details-content max-h-0 opacity-0 overflow-hidden transition-all duration-500 ease-in-out"> <p class="text-xs text-gray-500 mb-1 mt-2">This collection includes:</p>
+                        <ul class="list-disc list-inside text-xs text-gray-700 space-y-1">
+                            <li><a href="https://www.imvu.com/next/shop/product-70506218/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Lily in Hair</a></li>
+                            <li><a href="https://www.imvu.com/next/shop/product-70505752/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Boho Set B1</a></li>
+                            <li><a href="https://www.imvu.com/next/shop/product-70506288/" target="_blank" class="hover:text-purple-600 hover:underline">TE| Sunglasses</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-auto pt-4"> <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <button class="like-button text-gray-400 hover:text-red-500 transition duration-200 focus:outline-none text-2xl" data-item-id="cloth_summer_time"> <i class="far fa-heart"></i>
+                                </button>
+                                <span class="ml-1 text-sm font-semibold text-gray-600">0</span>
+                            </div>
+                        </div>
+                        <a href="https://www.instagram.com/toeternity.vu/" target="_blank" title="Дизайнер: ToEternity" class="text-pink-500 hover:text-pink-600 transition duration-300"> <i class="fab fa-instagram fa-2x"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-none w-10/12 sm:w-auto snap-center product-card-carousel-item flex items-center justify-center">
+            <a href="collections.html" class="flex flex-col items-center justify-center text-center p-6 bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl shadow-lg h-full w-full transition-all duration-300 transform hover:scale-105">
+                <i class="fas fa-tshirt fa-4x mb-6"></i> 
+                <h3 class="text-2xl font-semibold">More collections</h3>
+            </a>
+        </div>
+    </div>
+    </section>
+
+<section id="furniture" class="mb-16 scroll-mt-header">
+    <h2 class="text-3xl font-semibold text-gray-700 mb-8 text-center">Furniture</h2>
+    <div class="
+        flex overflow-x-auto space-x-4 pb-6
+        sm:grid sm:grid-cols-2 sm:gap-8 sm:space-x-0 
+        lg:grid-cols-3 
+        snap-x snap-mandatory
+        no-scrollbar
+        md:overflow-visible md:pb-0
+    ">
+        <div class="flex-none w-10/12 sm:w-auto snap-center product-card-carousel-item">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col items-center justify-center p-6 text-center">
+                <div class="image-zoom-container relative w-full h-64 flex items-center justify-center bg-gray-100 rounded-lg mb-4">
+                    <i class="fas fa-couch fa-5x text-purple-300"></i>
+                </div>
+                <div class="flex flex-col flex-grow">
+                    <h3 class="text-xl font-semibold mb-2 text-purple-700">Coming soon!</h3>
+                    <p class="text-gray-600 text-sm mb-4 flex-grow">Нові колекції ексклюзивних цифрових меблів вже в розробці.</p>
+                </div>
+            </div>
+        </div>
+<div class="flex-none w-10/12 sm:w-auto snap-center product-card-carousel-item flex items-center justify-center">
+    <a href="#" 
+       onclick="event.preventDefault(); alert('Сторінка з усіма меблями скоро з\'явиться!'); return false;"
+       aria-disabled="true"
+       class="flex flex-col items-center justify-center text-center p-6 
+              bg-gray-400 text-gray-700 rounded-xl shadow-lg h-full w-full 
+              transition-all duration-300 
+              opacity-75 cursor-not-allowed">
+        <i class="fas fa-plus-circle fa-4x mb-6"></i>
+        <h3 class="text-2xl font-semibold">More furniture</h3>
+        <p class="text-sm mt-2">Browse furniture catalog</p>
+    </a>
+</div>
+</section>
+
+<section id="creators-spotlight" class="bg-gray-200 py-6 md:py-8 scroll-mt-header">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-semibold text-gray-700 mb-10 text-center">Creators in the spotlight</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-md text-center product-card">
+                    <img src="{% static 'img/Toe_prof.PNG' %}" alt="Toe_prof" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-purple-300">
+                    <h4 class="text-xl font-semibold text-purple-700 mb-1">ToEternity</h4>
+                    <p class="text-gray-600 text-sm mb-3">Best creator</p>
+                    <a href="https://instagram.com/toeternity.vu" target="_blank" class="text-pink-500 hover:text-pink-600 transition duration-300">
+                        <i class="fab fa-instagram fa-lg mr-1"></i> Instagram
+                    </a>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md text-center product-card">
+                    <img src="{% static 'img/cat.jpg' %}" alt="cat" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-purple-300">
+                    <h4 class="text-xl font-semibold text-purple-700 mb-1">Your name</h4>
+                    <p class="text-gray-600 text-sm mb-3">Your info</p>
+                    <a href="#" target="_blank" class="text-pink-500 hover:text-pink-600 transition duration-300">
+                        <i class="fab fa-instagram fa-lg mr-1"></i> Your Instagram
+                    </a>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md text-center product-card">
+                    <img src="{% static 'img/cat.jpg' %}" alt="cat" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-purple-300">
+                    <h4 class="text-xl font-semibold text-purple-700 mb-1">Your name</h4>
+                    <p class="text-gray-600 text-sm mb-3">Your info</p>
+                    <a href="#" target="_blank" class="text-pink-500 hover:text-pink-600 transition duration-300">
+                        <i class="fab fa-instagram fa-lg mr-1"></i> Your Instagram
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <footer class="bg-gray-800 text-gray-300 py-10">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-sm">© <span id="currentYear"></span> ToEternity.shop. All rights reserved.</p>
+            <p class="text-xs mt-1">A website for showcasing creative products.</p>
+        </div>
+    </footer>
+
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-85 justify-center items-center p-4 z-[100] hidden opacity-0">
+        <img id="modalImage" src="" alt="Повноекранне зображення" class="max-w-[90%] max-h-[90%] object-contain shadow-lg rounded">
+        <button id="closeModalButton" class="absolute top-3 right-3 sm:top-5 sm:right-5 text-white text-4xl hover:text-gray-300 transition-colors focus:outline-none">&times;</button>
+    </div>
+
+   <div id="balloon-container" class="absolute inset-0 w-full h-full pointer-events-none z-0"></div> 
+
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+<script>
+    // Скрипт для мобільного меню (поза DOMContentLoaded, оскільки елементи можуть бути доступні одразу)
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            const icon = mobileMenuButton.querySelector('i');
+            if (mobileMenu.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+        // Закриття мобільного меню при кліку на посилання в ньому
+        document.querySelectorAll('#mobile-menu a[href^="#"]').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                const icon = mobileMenuButton.querySelector('i');
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            });
+        });
+    }
+
+    // Встановлення поточного року в футері
+    const currentYearEl = document.getElementById('currentYear');
+    if (currentYearEl) {
+        currentYearEl.textContent = new Date().getFullYear();
+    }
+    
+    // ---- Логіка для мобільного підменю ----
+    function toggleMobileSubmenu(submenuId) {
+        const submenu = document.getElementById(submenuId);
+        if (submenu) {
+            submenu.classList.toggle('hidden');
+            // Опціонально: обертання іконки стрілки
+            const buttonIcon = event.currentTarget.querySelector('i');
+            if (buttonIcon) {
+                if (submenu.classList.contains('hidden')) {
+                    buttonIcon.classList.remove('fa-chevron-up'); // Або інша іконка для "закрито"
+                    buttonIcon.classList.add('fa-chevron-down'); // Або fa-chevron-right
+                } else {
+                    buttonIcon.classList.remove('fa-chevron-down');
+                    buttonIcon.classList.add('fa-chevron-up'); // Або інша іконка для "відкрито"
+                }
+            }
+        }
+    }
+
+    // ===== КОД, ЩО ВИКОНУЄТЬСЯ ПІСЛЯ ЗАВАНТАЖЕННЯ DOM =====
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // ---- КОД ДЛЯ МОДАЛЬНОГО ВІКНА ЗОБРАЖЕНЬ ----
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const imageContainers = document.querySelectorAll('.image-zoom-container');
+
+        if (imageModal && modalImage && closeModalButton && imageContainers.length > 0) {
+            imageContainers.forEach(container => {
+                container.addEventListener('click', () => {
+                    const imageToZoom = container.querySelector('img');
+                    if (imageToZoom) {
+                        modalImage.src = imageToZoom.dataset.fullSrc || imageToZoom.src; 
+                        modalImage.alt = imageToZoom.alt;
+                        imageModal.classList.remove('hidden');
+                        setTimeout(() => {
+                            imageModal.classList.add('active');
+                        }, 10);
+                    }
+                });
+            });
+
+            function closeModalWindow() {
+                imageModal.classList.remove('active');
+                setTimeout(() => {
+                    imageModal.classList.add('hidden');
+                    modalImage.src = "";
+                }, 300);
+            }
+            closeModalButton.addEventListener('click', closeModalWindow);
+            imageModal.addEventListener('click', (event) => {
+                if (event.target === imageModal) {
+                    closeModalWindow();
+                }
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && imageModal.classList.contains('active')) {
+                    closeModalWindow();
+                }
+            });
+        } else {
+            console.warn('Один або декілька елементів модального вікна зображень не знайдені.');
+        }
+        
+        // ---- Intersection Observer для анімації карток при появі ----
+        const productCards = document.querySelectorAll('.product-card');
+        if (productCards.length > 0) {
+            const cardObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const cardObserverCallback = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-fadeInUp');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            };
+            const cardIntersectionObserver = new IntersectionObserver(cardObserverCallback, cardObserverOptions);
+            productCards.forEach(card => cardIntersectionObserver.observe(card));
+        }
+
+        // ---- КОД ДЛЯ ЗАВАНТАЖЕННЯ ПОЧАТКОВИХ ЛАЙКІВ ----
+        function loadInitialLikes() {
+            fetch('/api/get_all_likes')
+                .then(response => {
+                    if (!response.ok) throw new Error(`Помилка сервера (лайки): ${response.status} ${response.statusText}`);
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success && data.likes) {
+                        console.log('Отримані лайки:', data.likes);
+                        document.querySelectorAll('.like-button').forEach(button => {
+                            const itemId = button.dataset.itemId;
+                            const likeCounterSpan = button.nextElementSibling;
+                            const heartIcon = button.querySelector('i');
+                            if (!itemId || !likeCounterSpan || !heartIcon) {
+                                console.warn('Пропущено кнопку лайка через відсутність даних або елементів', button);
+                                return;
+                            }
+
+                            if (data.likes.hasOwnProperty(itemId)) {
+                                const count = data.likes[itemId];
+                                likeCounterSpan.textContent = count;
+                                if (count > 0) {
+                                    heartIcon.classList.remove('far', 'text-gray-400');
+                                    heartIcon.classList.add('fas', 'text-red-500');
+                                } else {
+                                    heartIcon.classList.remove('fas', 'text-red-500');
+                                    heartIcon.classList.add('far', 'text-gray-400');
+                                }
+                            } else {
+                                likeCounterSpan.textContent = '0';
+                                heartIcon.classList.remove('fas', 'text-red-500');
+                                heartIcon.classList.add('far', 'text-gray-400');
+                            }
+                        });
+                    } else {
+                         console.error('Помилка завантаження лайків або некоректна відповідь:', data.message);
+                    }
+                })
+                .catch(error => console.error('Помилка fetch (get_all_likes):', error));
+        }
+        loadInitialLikes(); 
+
+        // ---- КОД ДЛЯ ЕФЕКТУ ТІНІ ШАПКИ ----
+        const header = document.querySelector('header'); // Оголошуємо header тут
+        if (header) { 
+            const scrollThreshold = 10; 
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > scrollThreshold) {
+                    header.classList.add('header-scrolled');
+                } else {
+                    header.classList.remove('header-scrolled');
+                }
+            });
+        }
+
+        // ---- КОД ДЛЯ КНОПОК "ВПОДОБАТИ" (з функцією АНЛАЙКУ) ----
+        const likeButtons = document.querySelectorAll('.like-button'); // Оголошуємо likeButtons тут
+        if (likeButtons.length > 0) { 
+            likeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const heartIcon = button.querySelector('i');
+                    const likeCounterSpan = button.nextElementSibling;
+                    const itemId = button.dataset.itemId;
+
+                    if (!itemId || !likeCounterSpan || !heartIcon) { 
+                        console.error('Компоненти кнопки лайка не знайдені для:', button);
+                        return;
+                    }
+
+                    const isLiked = heartIcon.classList.contains('fas');
+                    const apiEndpoint = isLiked ? `/api/unlike/${itemId}` : `/api/like/${itemId}`;
+                    const actionDesc = isLiked ? 'зняття лайка' : 'встановлення лайка';
+
+                    console.log(`-> ${actionDesc} для ${itemId}`);
+                    fetch(apiEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                    .then(response => {
+                        if (!response.ok) throw new Error(`Помилка сервера (${response.status}): ${response.statusText}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(`<- Сервер (${actionDesc}) для ${itemId}:`, data);
+                        if (data.success) {
+                            likeCounterSpan.textContent = data.current_likes_on_server;
+                            if (data.current_likes_on_server > 0) {
+                                heartIcon.classList.remove('far', 'text-gray-400');
+                                heartIcon.classList.add('fas', 'text-red-500');
+                            } else {
+                                heartIcon.classList.remove('fas', 'text-red-500');
+                                heartIcon.classList.add('far', 'text-gray-400');
+                            }
+                        } else {
+                             console.error(`Помилка (${actionDesc}) на сервері для ${itemId}:`, data.message);
+                             loadInitialLikes(); 
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Помилка fetch (${actionDesc}) для ${itemId}:`, error);
+                    });
+                });
+            });
+        }
+        
+        // ----- КОД ДЛЯ АНІМАЦІЇ КУЛЬОК (ВИЗНАЧЕННЯ ФУНКЦІЙ) -----
+        const balloonContainer = document.getElementById('balloon-container');
+
+        function createBalloon() {
+            if (!balloonContainer) return;
+            const balloon = document.createElement('div');
+            balloon.classList.add('balloon');
+            const colors = ['#FFC0CB', '#ADD8E6', '#90EE90', '#FFD700', '#FFA07A', '#B0E0E6', '#FFB6C1', '#FF69B4', '#DA70D6', '#87CEFA', '#F08080', '#E0FFFF'];
+            balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            balloon.style.left = `${Math.random() * 80 + 5}%`;
+            const sway = (Math.random() - 0.5) * 15; 
+            const rotation = (Math.random() - 0.5) * 50; 
+            const duration = Math.random() * 4 + 6;
+            balloon.style.setProperty('--sway', sway);
+            balloon.style.setProperty('--rotation', rotation);
+            balloon.style.animation = `flyUp ${duration}s linear forwards`;
+            balloonContainer.appendChild(balloon);
+            setTimeout(() => { if (balloon.parentNode) balloon.remove(); }, duration * 1000 + 500); 
+        }
+
+        function startBalloonAnimation() {
+            if (!balloonContainer) return;
+            for (let i = 0; i < 5; i++) {
+                setTimeout(createBalloon, i * (Math.random() * 800 + 600));
+            }
+        }
+        // ----- КІНЕЦЬ КОДУ ДЛЯ АНІМАЦІЇ КУЛЬОК (ВИЗНАЧЕННЯ ФУНКЦІЙ) -----
+
+        // ----- Сповіщення-привітання -----
+        const welcomeNotification = document.getElementById('welcome-notification');
+        const closeWelcomeButton = document.getElementById('close-welcome-notification');
+        const dontShowAgainCheckbox = document.getElementById('dont-show-again');
+
+        if (welcomeNotification && closeWelcomeButton && dontShowAgainCheckbox) {
+            if (localStorage.getItem('welcomeNotificationDismissed') !== 'true') {
+                setTimeout(() => {
+                    welcomeNotification.classList.remove('hidden');
+                    setTimeout(() => { 
+                        welcomeNotification.classList.remove('opacity-0', 'scale-90');
+                        startBalloonAnimation(); // ВИКЛИК АНІМАЦІЇ КУЛЬОК
+                    }, 50); 
+                }, 1200); 
+            }
+
+            closeWelcomeButton.addEventListener('click', () => {
+                welcomeNotification.classList.add('opacity-0', 'scale-90'); 
+                setTimeout(() => {
+                    welcomeNotification.classList.add('hidden');
+                }, 500); 
+
+                if (dontShowAgainCheckbox.checked) {
+                    localStorage.setItem('welcomeNotificationDismissed', 'true');
+                    console.log("Налаштування 'Більше не показувати' збережено.");
+                }
+                if (balloonContainer) { // Очищаємо кульки при закритті
+                    balloonContainer.innerHTML = ''; 
+                }
+            });
+        } else {
+            console.warn('Елементи сповіщення-привітання не знайдені на сторінці.');
+        }
+        // ----- Кінець сповіщення-привітання -----
+
+        // ---- КОД ДЛЯ АНІМАЦІЇ ЗОРЯНОГО НЕБА (particles.js) ----
+        const particlesConfig = {
+            "particles": {
+                "number": { "value": 100, "density": { "enable": true, "value_area": 800 }},
+                "color": { "value": "#ffffff" },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.6, "random": true, "anim": { "enable": true, "speed": 0.8, "opacity_min": 0.1, "sync": false }},
+                "size": { "value": 2.5, "random": true, "anim": { "enable": true, "speed": 2, "size_min": 0.5, "sync": false }},
+                "line_linked": { "enable": false },
+                "move": { "enable": true, "speed": 0.4, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": false }, "onclick": { "enable": false }, "resize": true }
+            },
+            "retina_detect": true
+        };
+        if (typeof particlesJS !== 'undefined') { 
+            if (document.getElementById('particles-hero')) {
+                particlesJS('particles-hero', particlesConfig);
+            }
+            if (document.getElementById('particles-special')) {
+                particlesJS('particles-special', particlesConfig);
+            }
+        } else {
+            console.warn('Бібліотека particlesJS не завантажена.');
+        }
+
+    }); 
+    // ===== АНІМАЦІЯ ТЕКСТУ В БАНЕРАХ ПРИ ПРОКРУТЦІ =====
+    const heroSection = document.getElementById('hero-banner'); // ВИПРАВЛЕНО ТУТ
+    const heroTitle = document.getElementById('hero-title');
+    const heroSubtitle = document.getElementById('hero-subtitle');
+    const heroAchievements = document.getElementById('hero-achievements');
+
+    const specialOffersSection = document.getElementById('special-offers');
+    const specialTitle = document.getElementById('special-title');
+    const specialText = document.getElementById('special-text');
+
+    const animateTextOnScroll = (sectionElement, textElementsToAnimate) => {
+        if (!sectionElement || !textElementsToAnimate || textElementsToAnimate.length === 0) {
+            // Додамо перевірку, чи textElementsToAnimate не порожній і чи всі його елементи існують
+            let allElementsExist = true;
+            if (textElementsToAnimate && textElementsToAnimate.length > 0) {
+                textElementsToAnimate.forEach(el => {
+                    if (!el) allElementsExist = false;
+                });
+            } else {
+                allElementsExist = false;
+            }
+            if (!allElementsExist) {
+                 console.warn('Один або кілька елементів для анімації тексту не знайдено в масиві textElementsToAnimate для секції:', sectionElement);
+            }
+            if (!sectionElement) {
+                console.warn('Секція для Intersection Observer не знайдена.');
+            }
+            return;
+        }
+
+        const observerOptions = {
+            root: null, 
+            rootMargin: '0px',
+            threshold: 0.1 
+        };
+
+        const observerCallback = (entries) => {
+            entries.forEach(entry => {
+                textElementsToAnimate.forEach(el => {
+                    if (el) { 
+                        if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
+                            el.classList.remove('text-animate-out');
+                        } else if (!entry.isIntersecting || entry.intersectionRatio < 0.1) {
+                            el.classList.add('text-animate-out');
+                        }
+                    }
+                });
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+        observer.observe(sectionElement);
+    };
+
+    // Анімуємо текст та досягнення в hero банері
+    if (heroSection && heroTitle && heroSubtitle && heroAchievements) {
+        animateTextOnScroll(heroSection, [heroTitle, heroSubtitle, heroAchievements]); 
+    } else {
+        console.warn("Один або декілька елементів Hero (section, title, subtitle, achievements) для анімації тексту не знайдені. Перевірте ID.");
+        if (!heroSection) console.error("Елемент #hero-banner не знайдено!");
+        if (!heroTitle) console.error("Елемент #hero-title не знайдено!");
+        if (!heroSubtitle) console.error("Елемент #hero-subtitle не знайдено!");
+        if (!heroAchievements) console.error("Елемент #hero-achievements не знайдено!");
+    }
+    
+    // Анімуємо текст в секції спеціальних пропозицій
+    if (specialOffersSection && specialTitle && specialText) {
+        animateTextOnScroll(specialOffersSection, [specialTitle, specialText]);
+    } else {
+        console.warn("Один або декілька елементів Special Offers (section, title, text) для анімації тексту не знайдені. Перевірте ID.");
+        if (!specialOffersSection) console.error("Елемент #special-offers не знайдено!");
+        if (!specialTitle) console.error("Елемент #special-title не знайдено!");
+        if (!specialText) console.error("Елемент #special-text не знайдено!");
+    }
+    // ===== КІНЕЦЬ АНІМАЦІЇ ТЕКСТУ В БАНЕРАХ =====
+
+    // ===== ЛОГІКА ДЛЯ РОЗГОРТАННЯ ДЕТАЛЕЙ КОЛЕКЦІЇ =====
+    const detailToggleButtons = document.querySelectorAll('.details-toggle-button');
+
+    detailToggleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('aria-controls');
+            const detailsContent = document.getElementById(targetId);
+            const icon = button.querySelector('i.fa-chevron-down');
+
+            if (detailsContent) {
+                const isExpanded = detailsContent.classList.contains('expanded');
+                
+                if (isExpanded) {
+                    detailsContent.classList.remove('expanded');
+                    detailsContent.style.maxHeight = null; // Дозволяє CSS transition спрацювати при згортанні
+                    button.setAttribute('aria-expanded', 'false');
+                    if (icon) icon.classList.remove('rotate-180'); // Клас для обертання стрілки з Tailwind
+                } else {
+                    detailsContent.classList.add('expanded');
+                    // Встановлюємо max-height = реальній висоті контенту для плавної анімації
+                    // Якщо цього не зробити, анімація max-height з 0 на auto не працює плавно
+                    detailsContent.style.maxHeight = detailsContent.scrollHeight + "px"; 
+                    button.setAttribute('aria-expanded', 'true');
+                    if (icon) icon.classList.add('rotate-180');
+                }
+            }
+        });
+    });
+    // ===== КІНЕЦЬ ЛОГІКИ ДЛЯ РОЗГОРТАННЯ ДЕТАЛЕЙ =====
+
+// Кінець document.addEventListener('DOMContentLoaded', ...
+</script>
+
+<div id="welcome-notification" 
+     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
+            p-6 pt-8 sm:p-8 sm:pt-10 rounded-xl shadow-2xl 
+            w-11/12 max-w-md 
+            h-[70vh] overflow-y-auto bg-cover bg-center z-[70] 
+            hidden transition-all duration-500 ease-in-out opacity-0 transform scale-90 
+            overflow-hidden" 
+     style="background-image: url('{% static 'img/HB.jpg' %}');">
+    
+     <div class="absolute inset-0 bg-black opacity-60 rounded-xl -z-10"></div> 
+
+    <button id="close-welcome-notification" 
+            class="absolute top-2 right-3 text-gray-300 hover:text-white 
+                   text-4xl leading-none font-light focus:outline-none z-30">&times;</button>
+    
+    <div class="relative text-white text-center sm:text-left z-20">
+        <h3 class="text-2xl font-bold text-pink-300 mb-2"><br><br><br>HAPPY BIRTHDAY LOVELY ♥</h3><br>
+        <h4 class="text-lg font-semibold mb-3">Welcome to ToEternity.shop!</h4>
+        <p class="text-sm mb-4 leading-relaxed">
+            In honor of Toe's birthday, we’ve officially opened. <br>
+            Please be respectful and stay tuned for updates. <br>
+            We’d love for you to take a look around and explore the site’s content.
+        </p>
+        <div class="mt-6 flex items-center justify-center sm:justify-start">
+            <input type="checkbox" id="dont-show-again" 
+                   class="h-4 w-4 text-purple-500 bg-gray-700 border-gray-500 rounded 
+                          focus:ring-purple-600 focus:ring-offset-0 cursor-pointer">
+            <label for="dont-show-again" class="ml-2 text-xs text-gray-200 cursor-pointer">Don`t show again</label>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
