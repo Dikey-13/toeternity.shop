@@ -25,8 +25,12 @@ SECRET_KEY = 'django-insecure-be9+4-zdc_t*=e=^4rsrfg@#qknrpl+)y!jv!npdrw6+_1o)9%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['dikey13.pythonanywhere.com', '127.0.0.1'] 
-
+ALLOWED_HOSTS = [
+    'dikey13.pythonanywhere.com',  # Ваша *.pythonanywhere.com адреса
+    'www.toeternity.shop',       # Ваш новий основний домен
+    'toeternity.shop',           # "Голий" домен (додаємо для майбутнього)
+    '127.0.0.1'                  # Для локальної розробки
+]
 
 # Application definition
 
