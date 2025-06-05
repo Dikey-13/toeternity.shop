@@ -1,0 +1,364 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ collection.name }} - Колекція - ToEternity</title>
+    <link rel="icon" href="{% static 'img/ToEternity_LOGO.png' %}" type="image/png">
+    
+    <meta name="description" content="Перегляньте колекцію '{{ collection.name }}' від ToEternity: {{ collection.description|truncatewords:20 }}">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Скопійовано основні стилі з gallery.html / index.html для узгодженості темної теми */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            color: #e5e7eb; /* text-gray-200 */
+        }
+        html { scroll-behavior: smooth; }
+        .mobile-menu { display: none; }
+        .mobile-menu.active { display: block; }
+        .scroll-mt-header { scroll-margin-top: 70px; } /* Висота вашого хедера */
+
+        /* Стилі для хедера (як на інших сторінках) */
+        header { 
+            transition: box-shadow 0.3s ease-in-out;
+            background-color: #1f2937; /* bg-gray-800 */
+        }
+        .header-scrolled { 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        header nav > a, header nav .group > a {
+            position: relative; text-decoration: none; display: inline-block; 
+            padding-bottom: 6px; color: #d1d5db; /* text-gray-300 */
+        }
+        header nav > a:hover, header nav .group > a:hover { 
+            color: #ffffff; /* text-white */
+        }
+        header nav > a::after, header nav .group > a::after {
+            content: ''; position: absolute; width: 0%; height: 2px;
+            background-color: #ffffff; bottom: 0; left: 50%;
+            transform: translateX(-50%); transition: width 0.3s ease-in-out;
+        }
+        header nav > a:hover::after, header nav .group > a:hover::after { width: 100%; }
+        
+        /* Стилі для випадаючих меню в хедері */
+        header .absolute.bg-white.rounded-md.shadow-lg { /* Змінюємо фон випадаючого меню */
+            background-color: #374151; /* bg-gray-700 */
+            border: 1px solid #4b5563; /* border-gray-600 */
+        }
+        header .absolute.bg-white.rounded-md.shadow-lg a { /* Текст у випадаючому меню */
+             color: #d1d5db; /* text-gray-300 */
+        }
+        header .absolute.bg-white.rounded-md.shadow-lg a:hover { /* Ховер у випадаючому меню */
+            background-color: #4b5563; /* bg-gray-600 */
+            color: #ffffff; /* text-white */
+        }
+        header .absolute.bg-white.rounded-md.shadow-lg .fa-chevron-right {
+            color: #9ca3af; /* text-gray-400 */
+        }
+
+        /* Стилі для розгортаючогося контенту предметів колекції */
+        .collection-item-details {
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .collection-item-details.expanded {
+            max-height: 500px; /* Або більше, якщо потрібно для довгого списку */
+            opacity: 1;
+            margin-top: 0.5rem; /* mt-2 */
+        }
+        .toggle-collection-items.expanded .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <header class="bg-gray-800 sticky top-0 z-50 transition-all duration-300 ease-in-out">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="{% url 'home' %}" class="flex items-center space-x-2 group">
+                <img src="{% static 'img/ToEternity_shop.png' %}" alt="Логотип ToEternity" class="h-8"> 
+                <span class="text-2xl font-bold text-gray-100 group-hover:text-white transition-colors duration-300"></span>
+            </a>
+            <nav class="hidden md:flex space-x-4 xl:space-x-6 items-center">
+                <a href="{% url 'home' %}#arts" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Art</a>
+                <a href="{% url 'home' %}#special-offers" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Special offers</a>
+                <a href="{% url 'home' %}#collections" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Collections</a> 
+                <div class="relative group pb-2 flex items-center"> 
+                    <a href="{% url 'home' %}#digital-fashion" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1 rounded-md inline-flex items-center">
+                        <span>Clothing</span>
+                        <i class="fas fa-chevron-down fa-xs ml-2 transition-transform duration-200 group-hover:rotate-180"></i>
+                    </a>
+                    <div class="absolute left-0 mt-2 w-48 rounded-md shadow-lg py-1 z-20 hidden group-hover:block transition-all duration-300 opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100">
+                        <div class="relative group/submenu pr-1">
+                            <a href="{% url 'home' %}#digital-fashion-men" class="w-full text-left px-4 py-2 text-sm flex justify-between items-center">
+                                <span>Men</span><i class="fas fa-chevron-right fa-xs"></i>
+                            </a>
+                            <div class="absolute left-full top-0 mt-0 ml-1 w-48 rounded-md shadow-lg py-1 z-30 hidden group-hover/submenu:block">
+                                <a href="{% url 'home' %}#digital-fashion-men-top" class="block px-4 py-2 text-sm">Top</a>
+                                <a href="{% url 'home' %}#digital-fashion-men-bottom" class="block px-4 py-2 text-sm">Bottom</a>
+                                <a href="{% url 'home' %}#digital-fashion-men-shoes" class="block px-4 py-2 text-sm">Shoes</a>
+                                <a href="{% url 'home' %}#digital-fashion-men-accessories" class="block px-4 py-2 text-sm">Accessories</a>
+                            </div>
+                        </div>
+                        <div class="relative group/submenu pr-1">
+                            <a href="{% url 'home' %}#digital-fashion-women" class="w-full text-left px-4 py-2 text-sm flex justify-between items-center">
+                                <span>Women</span><i class="fas fa-chevron-right fa-xs"></i>
+                            </a>
+                            <div class="absolute left-full top-0 mt-0 ml-1 w-48 rounded-md shadow-lg py-1 z-30 hidden group-hover/submenu:block">
+                                <a href="{% url 'home' %}#digital-fashion-women-top" class="block px-4 py-2 text-sm">Top</a>
+                                <a href="{% url 'home' %}#digital-fashion-women-bottom" class="block px-4 py-2 text-sm">Bottom</a>
+                                <a href="{% url 'home' %}#digital-fashion-women-shoes" class="block px-4 py-2 text-sm">Shoes</a>
+                                <a href="{% url 'home' %}#digital-fashion-women-accessories" class="block px-4 py-2 text-sm">Accessories</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'home' %}#furniture" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Furniture</a>
+                <a href="{% url 'home' %}#creators-spotlight" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Creators</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+                <i class="fas fa-bars fa-lg"></i>
+            </button>
+        </div>
+        <div id="mobile-menu" class="mobile-menu md:hidden bg-gray-700 shadow-lg absolute w-full">
+            <a href="{% url 'home' %}#arts" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Art</a>
+            <a href="{% url 'home' %}#special-offers" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Special offers</a>
+            <a href="{% url 'home' %}#collections" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Collections</a>
+            <div>
+                <button onclick="toggleMobileSubmenu('digital-fashion-submenu-mobile')" class="w-full text-left flex justify-between items-center px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">
+                    <span>Clothing</span><i class="fas fa-chevron-down fa-xs ml-2"></i>
+                </button>
+                <div id="digital-fashion-submenu-mobile" class="hidden pl-6 bg-gray-700">
+                    <div>
+                        <button onclick="toggleMobileSubmenu('digital-fashion-men-submenu-mobile')" class="w-full text-left flex justify-between items-center px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">
+                            <span>Men</span><i class="fas fa-chevron-right fa-xs ml-2"></i>
+                        </button>
+                        <div id="digital-fashion-men-submenu-mobile" class="hidden pl-4 bg-gray-700">
+                            <a href="{% url 'home' %}#digital-fashion-men-top" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Top</a>
+                            <a href="{% url 'home' %}#digital-fashion-men-bottom" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Bottom</a>
+                            <a href="{% url 'home' %}#digital-fashion-men-shoes" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Shoes</a>
+                            <a href="{% url 'home' %}#digital-fashion-men-accessories" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Accessories</a>
+                        </div>
+                    </div>
+                    <div>
+                        <button onclick="toggleMobileSubmenu('digital-fashion-women-submenu-mobile')" class="w-full text-left flex justify-between items-center px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">
+                            <span>Women</span><i class="fas fa-chevron-right fa-xs ml-2"></i>
+                        </button>
+                        <div id="digital-fashion-women-submenu-mobile" class="hidden pl-4 bg-gray-700">
+                            <a href="{% url 'home' %}#digital-fashion-women-top" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Top</a>
+                           <a href="{% url 'home' %}#digital-fashion-women-bottom" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Bottom</a>
+                           <a href="{% url 'home' %}#digital-fashion-women-shoes" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Shoes</a>
+                           <a href="{% url 'home' %}#digital-fashion-women-accessories" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Accessories</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'home' %}#furniture" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Furniture</a>
+            <a href="{% url 'home' %}#creators-spotlight" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Creators</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-10">
+        {% if collection.preview_image %}
+        <div class="mb-8 rounded-lg overflow-hidden shadow-xl max-h-[500px]"> <img src="{{ collection.preview_image.url }}" alt="Прев'ю колекції {{ collection.name }}" class="w-full h-full object-cover">
+        </div>
+        {% endif %}
+
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-2 text-center">{{ collection.name }}</h1>
+        {% if collection.description %}
+        <p class="text-lg text-gray-300 mb-8 text-center">{{ collection.description|linebreaksbr }}</p>
+        {% endif %}
+
+        <div class="bg-slate-800 p-6 md:p-8 rounded-lg shadow-xl max-w-3xl mx-auto">
+            <button type="button" 
+                    class="details-toggle-button toggle-collection-items mb-3 w-full bg-gray-700 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-300 text-sm focus:outline-none flex items-center justify-center" 
+                    aria-expanded="true"  aria-controls="collection-item-list-{{ collection.id }}">
+                This collection includes: <i class="fas fa-chevron-down fa-xs ml-2 transform transition-transform duration-200 rotate-180"></i> </button>
+            
+            <div id="collection-item-list-{{ collection.id }}" class="collection-item-details expanded"> {% if clothing_items %}
+                    <ul class="list-disc list-inside text-gray-300 space-y-2 mt-4 pl-1">
+                        {% for item in clothing_items %}
+                        <li class="ml-4">
+                            <a href="{{ item.imvu_link }}" target="_blank" class="hover:text-white hover:underline font-medium text-purple-300"> {{ item.name }}
+                            </a>
+                            <span class="text-xs text-gray-400 ml-2">({{ item.get_gender_display }} - {{ item.get_category_display }})</span>
+                            {% if item.description %}
+                                <p class="text-xs text-gray-400 ml-5_temp_fix">{{ item.description|linebreaksbr }}</p> {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-gray-400 mt-4">В цій колекції поки що немає предметів.</p>
+                {% endif %}
+            </div>
+
+            <div class="flex justify-between items-center mt-8 pt-4 border-t border-gray-700">
+                <div class="flex items-center">
+                    <button class="like-button text-gray-400 hover:text-red-500 transition duration-200 focus:outline-none text-2xl" 
+                            data-item-id="collection-{{ collection.id }}">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <span class="ml-2 text-sm font-semibold text-gray-300">0</span>
+                </div>
+                <a href="https://www.instagram.com/toeternity.vu/" target="_blank" title="Instagram ToEternity" class="text-pink-400 hover:text-pink-300 transition duration-300">
+                    <i class="fab fa-instagram fa-2x"></i>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-black text-gray-400 py-10 mt-10">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-sm">&copy; {% now "Y" %} ToEternity.shop. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+    // Скрипт для мобільного меню 
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            const icon = mobileMenuButton.querySelector('i');
+            if (mobileMenu.classList.contains('active')) {
+                icon.classList.remove('fa-bars'); icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times'); icon.classList.add('fa-bars');
+            }
+        });
+        document.querySelectorAll('#mobile-menu a[href^="/#"]').forEach(link => { // Виправлено селектор для gallery.html
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                const icon = mobileMenuButton.querySelector('i');
+                icon.classList.remove('fa-times'); icon.classList.add('fa-bars');
+            });
+        });
+    }
+    function toggleMobileSubmenu(submenuId) {
+        // ... (ваша функція toggleMobileSubmenu)
+         const submenu = document.getElementById(submenuId);
+        if (submenu) {
+            submenu.classList.toggle('hidden');
+            // Потрібно передати event в HTML: onclick="toggleMobileSubmenu(event, 'digital-fashion-submenu-mobile')"
+            // Або знайти кнопку іншим способом, якщо event не передається
+            // const buttonIcon = event.currentTarget.querySelector('i'); 
+            // if (buttonIcon) { ... }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Логіка для розгортання/згортання списку предметів колекції
+        document.querySelectorAll('.toggle-collection-items').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.getAttribute('aria-controls');
+                const detailsContent = document.getElementById(targetId);
+                const icon = button.querySelector('i.fa-chevron-down');
+
+                if (detailsContent) {
+                    const isExpanded = detailsContent.classList.contains('expanded');
+                    if (isExpanded) {
+                        detailsContent.classList.remove('expanded');
+                        button.setAttribute('aria-expanded', 'false');
+                        if (icon) icon.classList.remove('rotate-180');
+                    } else {
+                        detailsContent.classList.add('expanded');
+                        button.setAttribute('aria-expanded', 'true');
+                        if (icon) icon.classList.add('rotate-180');
+                    }
+                }
+            });
+        });
+
+        // КОД ДЛЯ ЗАВАНТАЖЕННЯ ПОЧАТКОВИХ ЛАЙКІВ
+        function loadInitialLikes() {
+            fetch('/api/get_all_likes')
+                .then(response => response.ok ? response.json() : Promise.reject(response))
+                .then(data => {
+                    if (data.success && data.likes) {
+                        document.querySelectorAll('.like-button').forEach(button => {
+                            const itemId = button.dataset.itemId;
+                            const likeCounterSpan = button.nextElementSibling;
+                            const heartIcon = button.querySelector('i');
+                            if (!itemId || !likeCounterSpan || !heartIcon) return;
+
+                            if (data.likes.hasOwnProperty(itemId)) {
+                                const count = data.likes[itemId];
+                                likeCounterSpan.textContent = count;
+                                heartIcon.classList.toggle('fas', count > 0);
+                                heartIcon.classList.toggle('text-red-500', count > 0);
+                                heartIcon.classList.toggle('far', count <= 0);
+                                heartIcon.classList.toggle('text-gray-400', count <= 0);
+                            } else {
+                                likeCounterSpan.textContent = '0';
+                                heartIcon.classList.add('far', 'text-gray-400');
+                                heartIcon.classList.remove('fas', 'text-red-500');
+                            }
+                        });
+                    }
+                })
+                .catch(error => console.error('Помилка fetch (get_all_likes) на collection_detail.html:', error));
+        }
+        loadInitialLikes(); 
+
+        // КОД ДЛЯ КНОПОК "ВПОДОБАТИ"
+        const likeButtons = document.querySelectorAll('.like-button');
+        if (likeButtons.length > 0) { 
+            likeButtons.forEach(button => {
+                button.addEventListener('click', (event) => { 
+                    const currentButton = event.currentTarget; 
+                    const heartIcon = currentButton.querySelector('i');
+                    const likeCounterSpan = currentButton.nextElementSibling;
+                    const itemId = currentButton.dataset.itemId;
+
+                    if (!itemId || !likeCounterSpan || !heartIcon) { 
+                        console.error('Компоненти кнопки лайка не знайдені для:', currentButton);
+                        return;
+                    }
+                    const isLiked = heartIcon.classList.contains('fas');
+                    const apiEndpoint = isLiked ? `/api/unlike/${itemId}` : `/api/like/${itemId}`;
+                    
+                    fetch(apiEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                    .then(response => response.ok ? response.json() : Promise.reject(response))
+                    .then(data => {
+                        if (data.success) {
+                            likeCounterSpan.textContent = data.current_likes_on_server;
+                            heartIcon.classList.toggle('fas', data.current_likes_on_server > 0);
+                            heartIcon.classList.toggle('text-red-500', data.current_likes_on_server > 0);
+                            heartIcon.classList.toggle('far', data.current_likes_on_server <= 0);
+                            heartIcon.classList.toggle('text-gray-400', data.current_likes_on_server <= 0);
+                        } else {
+                           loadInitialLikes(); 
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Помилка fetch (лайк/анлайк) для ${itemId}:`, error);
+                    });
+                });
+            });
+        }
+        
+        // КОД ДЛЯ ЕФЕКТУ ТІНІ ШАПКИ 
+        const header = document.querySelector('header.sticky'); 
+        if (header) { 
+             const scrollThreshold = 10; 
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > scrollThreshold) {
+                    header.classList.add('header-scrolled');
+                } else {
+                    header.classList.remove('header-scrolled');
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

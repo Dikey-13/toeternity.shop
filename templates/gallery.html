@@ -4,13 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gallery of arts - ToEternity</title> <link rel="icon" href="{% static 'img/ToEternity_LOGO.png' %}" type="image/png">
+    <title>Gallery of arts - ToEternity</title>
+    <link rel="icon" href="{% static 'img/ToEternity_LOGO.png' %}" type="image/png">
+    <meta name="description" content="Gallery of Digital Artworks by ToEternity. Explore exclusive paintings, illustrations, and 3D art. Find inspiration in the creativity of talented artists.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            /* Застосовуємо темну тему до gallery.html */
+            background-color: #111827; /* bg-gray-900 */
+            color: #e5e7eb; /* text-gray-200 */
         }
         html {
             scroll-behavior: smooth;
@@ -44,26 +49,32 @@
             opacity: 0;
             animation: fadeInUp 0.7s ease-out forwards;
         }
-        header {
+        header { /* Стилі для хедера з темною темою */
             transition: box-shadow 0.3s ease-in-out;
+            background-color: #1f2937; /* bg-gray-800 */
         }
         .header-scrolled {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); /* Тінь може залишитися такою ж */
         }
         header nav > a,
         header nav .group > a {
             position: relative;
             text-decoration: none;
             display: inline-block; 
-            padding-bottom: 6px; 
+            padding-bottom: 6px;
+            color: #d1d5db; /* text-gray-300 */
         }
+         header nav > a:hover,
+         header nav .group > a:hover {
+            color: #ffffff; /* text-white */
+         }
         header nav > a::after,
         header nav .group > a::after {
             content: '';
             position: absolute;
             width: 0%;
             height: 2px;
-            background-color: #7C3AED; /* purple-600 */
+            background-color: #ffffff; /* Біле підкреслення для темної теми */
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
@@ -73,58 +84,56 @@
         header nav .group > a:hover::after {
             width: 100%;
         }
+        /* Стилі для випадаючих меню в хедері на темному фоні */
+        .absolute.bg-white.rounded-md.shadow-lg { /* Змінюємо фон випадаючого меню */
+            background-color: #374151; /* bg-gray-700 */
+            border: 1px solid #4b5563; /* bg-gray-600 - для рамки */
+        }
+        .absolute.bg-white.rounded-md.shadow-lg a { /* Текст у випадаючому меню */
+             color: #d1d5db; /* text-gray-300 */
+        }
+        .absolute.bg-white.rounded-md.shadow-lg a:hover { /* Ховер у випадаючому меню */
+            background-color: #4b5563; /* bg-gray-600 */
+            color: #ffffff; /* text-white */
+        }
+        /* Для іконок-стрілочок у випадаючому меню */
+        .absolute.bg-white.rounded-md.shadow-lg .fa-chevron-right {
+            color: #9ca3af; /* text-gray-400 */
+        }
+
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        #balloon-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 60;
+        #balloon-container { /* Якщо використовується */
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; overflow: hidden; z-index: 60;
         }
-        .balloon {
-            position: absolute;
-            width: 40px; 
-            height: 55px; 
-            background-color: red; 
-            border-radius: 50% / 40% 40% 60% 60%; 
-            transform: rotate(-20deg); 
-            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2); 
-            opacity: 0; 
+        .balloon { /* Якщо використовується */
+            position: absolute; width: 40px; height: 55px; background-color: red; 
+            border-radius: 50% / 40% 40% 60% 60%; transform: rotate(-20deg); 
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2); opacity: 0; 
             will-change: transform, opacity, bottom;
         }
-        .balloon::after {
-            content: '';
-            position: absolute;
-            bottom: -10px; 
-            left: 50%;
-            transform: translateX(-50%);
-            width: 1px;
-            height: 20px; 
+        .balloon::after { /* Якщо використовується */
+            content: ''; position: absolute; bottom: -10px; left: 50%;
+            transform: translateX(-50%); width: 1px; height: 20px; 
             background-color: rgba(255, 255, 255, 0.5); 
         }
-        @keyframes flyUp {
+        @keyframes flyUp { /* Якщо використовується */
             0% { bottom: -100px; opacity: 0; transform: translateX(0vw) rotate(-20deg); }
             10%, 15% { opacity: 0.9; }
             85%, 90% { opacity: 0.9; }
             100% { bottom: 105vh; opacity: 0; transform: translateX(calc(var(--sway) * 1vw)) rotate(calc(var(--rotation) * 1deg)); }
         }
         .text-animate-out {
-            transform: scale(0.8) translateY(30px);
-            opacity: 0;
+            transform: scale(0.8) translateY(30px); opacity: 0;
         }
         .collection-details-content {
             transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, margin-top 0.5s ease-in-out, margin-bottom 0.5s ease-in-out;
         }
         .collection-details-content.expanded {
-            max-height: 500px; 
-            opacity: 1;
-            margin-top: 0.75rem;
-            margin-bottom: 0.75rem;
+            max-height: 500px; opacity: 1; margin-top: 0.75rem; margin-bottom: 0.75rem;
         }
         .details-toggle-button.expanded .fa-chevron-down {
             transform: rotate(180deg);
@@ -133,154 +142,160 @@
             transition: opacity 0.4s ease-in-out;
         }
         #timerModal.active {
-            display: flex;
+            display: flex; opacity: 1;
+        }
+        #timerModalImageFrame { /* Змінено з #timerModalContent */
+            transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+            transform: scale(0.9);
+            opacity: 0;
+        }
+        #timerModal.active #timerModalImageFrame { /* Змінено з #timerModalContent */
+            transform: scale(1);
             opacity: 1;
         }
-        #timerModalContent {
-            transition: transform 0.4s ease-in-out;
-            transform: scale(0.9);
+        /* Картки на сторінці галереї */
+        .gallery-card { /* Новий клас для карток галереї, якщо потрібні окремі стилі */
+            background-color: #1f2937; /* bg-gray-800 */
         }
-        #timerModal.active #timerModalContent {
-            transform: scale(1);
+        .gallery-card h3 {
+            color: #ffffff; /* text-white */
         }
+        .gallery-card p {
+            color: #d1d5db; /* text-gray-300 */
+        }
+        .gallery-card .like-button + span { /* Лічильник лайків */
+            color: #d1d5db; /* text-gray-300 */
+        }
+        .gallery-card .fa-instagram {
+             color: #ec4899; /* text-pink-500, можна налаштувати */
+        }
+        .gallery-card .fa-instagram:hover {
+             color: #f472b6; /* text-pink-400 */
+        }
+
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-
-<header class="bg-white sticky top-0 z-50 transition-all duration-300 ease-in-out">
-    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+<body class="bg-gray-900 text-gray-200"> <header class="bg-gray-800 sticky top-0 z-50 transition-all duration-300 ease-in-out"> <div class="container mx-auto px-6 py-4 flex justify-between items-center">
         <a href="{% url 'home' %}" class="flex items-center space-x-2 group">
-    <img src="{% static 'img/ToEternity_shop.png' %}" alt="Логотип ToEternity" class="h-8"> 
-</a>
+            <img src="{% static 'img/ToEternity_shop.png' %}" alt="Логотип ToEternity" class="h-8"> 
+            <span class="text-2xl font-bold text-gray-100 group-hover:text-white transition-colors duration-300"> </span>
+        </a>
         
         <nav class="hidden md:flex space-x-4 xl:space-x-6 items-center">
-            <a href="{% url 'home' %}#arts" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1">Art</a>
-            <a href="{% url 'home' %}#special-offers" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1">Special offers</a>
-            <a href="{% url 'home' %}#collections" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1">Collections</a> 
+            <a href="{% url 'home' %}#arts" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Art</a>
+            <a href="{% url 'home' %}#special-offers" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Special offers</a>
+            <a href="{% url 'home' %}#collections" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Collections</a> 
             
             <div class="relative group pb-2 flex items-center"> 
-                <a href="{% url 'home' %}#digital-fashion" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1 rounded-md inline-flex items-center">
+                <a href="{% url 'home' %}#digital-fashion" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1 rounded-md inline-flex items-center">
                     <span>Clothing</span>
                     <i class="fas fa-chevron-down fa-xs ml-2 transition-transform duration-200 group-hover:rotate-180"></i>
                 </a>
-                <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden group-hover:block transition-all duration-300 opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100">
+                <div class="absolute left-0 mt-2 w-48 rounded-md shadow-lg py-1 z-20 hidden group-hover:block transition-all duration-300 opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100">
                     <div class="relative group/submenu pr-1">
-                        <a href="{% url 'home' %}#digital-fashion-men" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 flex justify-between items-center">
+                        <a href="{% url 'home' %}#digital-fashion-men" class="w-full text-left px-4 py-2 text-sm flex justify-between items-center">
                             <span>Men</span>
                             <i class="fas fa-chevron-right fa-xs"></i>
                         </a>
-                        <div class="absolute left-full top-0 mt-0 ml-1 w-48 bg-white rounded-md shadow-lg py-1 z-30 hidden group-hover/submenu:block transition-all duration-300 opacity-0 group-hover/submenu:opacity-100 transform scale-95 group-hover/submenu:scale-100">
-                            <a href="{% url 'home' %}#digital-fashion-men-top" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Top</a>
-                            <a href="{% url 'home' %}#digital-fashion-men-bottom" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Bottom</a>
-                            <a href="{% url 'home' %}#digital-fashion-men-shoes" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Shoes</a>
-                            <a href="{% url 'home' %}#digital-fashion-men-accessories" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Accessories</a>
+                        <div class="absolute left-full top-0 mt-0 ml-1 w-48 rounded-md shadow-lg py-1 z-30 hidden group-hover/submenu:block transition-all duration-300 opacity-0 group-hover/submenu:opacity-100 transform scale-95 group-hover/submenu:scale-100">
+                            <a href="{% url 'home' %}#digital-fashion-men-top" class="block px-4 py-2 text-sm">Top</a>
+                            <a href="{% url 'home' %}#digital-fashion-men-bottom" class="block px-4 py-2 text-sm">Bottom</a>
+                            <a href="{% url 'home' %}#digital-fashion-men-shoes" class="block px-4 py-2 text-sm">Shoes</a>
+                            <a href="{% url 'home' %}#digital-fashion-men-accessories" class="block px-4 py-2 text-sm">Accessories</a>
                         </div>
                     </div>
                     <div class="relative group/submenu pr-1">
-                        <a href="{% url 'home' %}#digital-fashion-women" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 flex justify-between items-center">
+                        <a href="{% url 'home' %}#digital-fashion-women" class="w-full text-left px-4 py-2 text-sm flex justify-between items-center">
                             <span>Women</span>
                             <i class="fas fa-chevron-right fa-xs"></i>
                         </a>
-                        <div class="absolute left-full top-0 mt-0 ml-1 w-48 bg-white rounded-md shadow-lg py-1 z-30 hidden group-hover/submenu:block transition-all duration-300 opacity-0 group-hover/submenu:opacity-100 transform scale-95 group-hover/submenu:scale-100">
-                            <a href="{% url 'home' %}#digital-fashion-women-top" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Top</a>
-                            <a href="{% url 'home' %}#digital-fashion-women-bottom" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Bottom</a>
-                            <a href="{% url 'home' %}#digital-fashion-women-shoes" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Shoes</a>
-                            <a href="{% url 'home' %}#digital-fashion-women-accessories" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600">Accessories</a>
+                        <div class="absolute left-full top-0 mt-0 ml-1 w-48 rounded-md shadow-lg py-1 z-30 hidden group-hover/submenu:block transition-all duration-300 opacity-0 group-hover/submenu:opacity-100 transform scale-95 group-hover/submenu:scale-100">
+                            <a href="{% url 'home' %}#digital-fashion-women-top" class="block px-4 py-2 text-sm">Top</a>
+                            <a href="{% url 'home' %}#digital-fashion-women-bottom" class="block px-4 py-2 text-sm">Bottom</a>
+                            <a href="{% url 'home' %}#digital-fashion-women-shoes" class="block px-4 py-2 text-sm">Shoes</a>
+                            <a href="{% url 'home' %}#digital-fashion-women-accessories" class="block px-4 py-2 text-sm">Accessories</a>
                         </div>
                     </div>
                 </div>
             </div>
-            <a href="{% url 'home' %}#furniture" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1">Furniture</a>
-            <a href="{% url 'home' %}#creators-spotlight" class="text-gray-600 hover:text-purple-600 transition duration-300 px-2 py-1">Creators</a>
+            <a href="{% url 'home' %}#furniture" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Furniture</a>
+            <a href="{% url 'home' %}#creators-spotlight" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Creators</a>
         </nav>
-        <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-purple-600 focus:outline-none">
-            <i class="fas fa-bars fa-lg"></i>
+        <button id="mobile-menu-button" class="md:hidden text-gray-300 hover:text-white focus:outline-none"> <i class="fas fa-bars fa-lg"></i>
         </button>
     </div>
-    <div id="mobile-menu" class="mobile-menu md:hidden bg-white shadow-lg absolute w-full">
-        <a href="{% url 'home' %}#arts" class="block px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">Art</a>
-        <a href="{% url 'home' %}#special-offers" class="block px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">Special offers</a>
-        <a href="{% url 'home' %}#collections" class="block px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">Collections</a>
+    <div id="mobile-menu" class="mobile-menu md:hidden bg-gray-700 shadow-lg absolute w-full"> <a href="{% url 'home' %}#arts" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Art</a>
+        <a href="{% url 'home' %}#special-offers" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Special offers</a>
+        <a href="{% url 'home' %}#collections" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Collections</a>
         <div>
-            <button onclick="toggleMobileSubmenu('digital-fashion-submenu-mobile')" class="w-full text-left flex justify-between items-center px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">
+            <button onclick="toggleMobileSubmenu('digital-fashion-submenu-mobile')" class="w-full text-left flex justify-between items-center px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">
                 <span>Clothing</span>
                 <i class="fas fa-chevron-down fa-xs"></i>
             </button>
-            <div id="digital-fashion-submenu-mobile" class="hidden pl-6">
-                <div>
-                    <button onclick="toggleMobileSubmenu('digital-fashion-men-submenu-mobile')" class="w-full text-left flex justify-between items-center px-4 py-2 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">
+            <div id="digital-fashion-submenu-mobile" class="hidden pl-6 bg-gray-700"> <div>
+                    <button onclick="toggleMobileSubmenu('digital-fashion-men-submenu-mobile')" class="w-full text-left flex justify-between items-center px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">
                         <span>Men</span>
                         <i class="fas fa-chevron-right fa-xs"></i>
                     </button>
-                    <div id="digital-fashion-men-submenu-mobile" class="hidden pl-4">
-                        <a href="{% url 'home' %}#digital-fashion-men-top" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Top</a>
-                        <a href="{% url 'home' %}#digital-fashion-men-bottom" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Bottom</a>
-                        <a href="{% url 'home' %}#digital-fashion-men-shoes" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Shoes</a>
-                        <a href="{% url 'home' %}#digital-fashion-men-accessories" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Accessories</a>
+                    <div id="digital-fashion-men-submenu-mobile" class="hidden pl-4 bg-gray-700">
+                        <a href="{% url 'home' %}#digital-fashion-men-top" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Top</a>
+                        <a href="{% url 'home' %}#digital-fashion-men-bottom" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Bottom</a>
+                        <a href="{% url 'home' %}#digital-fashion-men-shoes" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Shoes</a>
+                        <a href="{% url 'home' %}#digital-fashion-men-accessories" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Accessories</a>
                     </div>
                 </div>
                 <div>
-                    <button onclick="toggleMobileSubmenu('digital-fashion-women-submenu-mobile')" class="w-full text-left flex justify-between items-center px-4 py-2 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">
+                    <button onclick="toggleMobileSubmenu('digital-fashion-women-submenu-mobile')" class="w-full text-left flex justify-between items-center px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">
                         <span>Women</span>
                         <i class="fas fa-chevron-right fa-xs"></i>
                     </button>
-                    <div id="digital-fashion-women-submenu-mobile" class="hidden pl-4">
-                        <a href="{% url 'home' %}#digital-fashion-women-top" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Top</a>
-                        <a href="{% url 'home' %}#digital-fashion-women-bottom" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Bottom</a>
-                        <a href="{% url 'home' %}#digital-fashion-women-shoes" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Shoes</a>
-                        <a href="{% url 'home' %}#digital-fashion-women-accessories" class="block px-4 py-2 text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600">Accessories</a>
+                    <div id="digital-fashion-women-submenu-mobile" class="hidden pl-4 bg-gray-700">
+                        <a href="{% url 'home' %}#digital-fashion-women-top" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Top</a>
+                        <a href="{% url 'home' %}#digital-fashion-women-bottom" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Bottom</a>
+                        <a href="{% url 'home' %}#digital-fashion-women-shoes" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Shoes</a>
+                        <a href="{% url 'home' %}#digital-fashion-women-accessories" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Accessories</a>
                     </div>
                 </div>
             </div>
         </div>
-        <a href="{% url 'home' %}#furniture" class="block px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">Furniture</a>
-        <a href="{% url 'home' %}#creators-spotlight" class="block px-6 py-3 text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition duration-300">Creators</a>
+        <a href="{% url 'home' %}#furniture" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Furniture</a>
+        <a href="{% url 'home' %}#creators-spotlight" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Creators</a>
     </div>
 </header>
 <main class="container mx-auto px-6 py-10">
-        <h1 class="text-4xl font-bold text-gray-800 mb-8 text-center">Gallery of arts</h1>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for art in artworks %}
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
-                <div class="image-zoom-container relative w-full h-64 overflow-hidden cursor-pointer">
-                    <img src="{{ art.image_preview.url }}" alt="{{ art.title }}" class="w-full h-full object-cover transition-transform duration-300 ease-in-out" data-full-src="{{ art.image_full.url }}">
-                </div>
-                <div class="p-6 flex flex-col flex-grow">
-                    <h3 class="text-xl font-semibold mb-2 text-purple-700">{{ art.title }}</h3>
-                    <p class="text-gray-600 text-sm mb-4 flex-grow">{{ art.description|linebreaksbr }}</p>
-                    <div class="flex justify-between items-center mt-auto pt-4">
-                        <div class="flex items-center">
-                            <button class="like-button text-gray-400 hover:text-red-500 transition duration-200 focus:outline-none text-2xl" data-item-id="artwork-{{ art.id }}">
-                                <i class="far fa-heart"></i>
-                            </button>
-                            <span class="ml-1 text-sm font-semibold text-gray-600">0</span>
-                        </div>
-                        {% if art.instagram_link %}
-                        <a href="{{ art.instagram_link }}" target="_blank" class="text-pink-500 hover:text-pink-600 transition duration-300">
-                            <i class="fab fa-instagram fa-2x"></i>
-                        </a>
-                        {% endif %}
-                    </div>
+    <h1 class="text-4xl font-bold text-gray-100 mb-8 text-center">Gallery of arts</h1> <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for art in artworks %}
+        <div class="gallery-card rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
+            <div class="image-zoom-container relative w-full h-64 overflow-hidden cursor-pointer">
+                <img src="{{ art.image_preview.url }}" alt="{{ art.title }}" class="w-full h-full object-cover" data-full-src="{{ art.image_full.url }}"> </div>
+            <div class="p-6 flex flex-col flex-grow">
+                <h3>{{ art.title }}</h3> <p class="text-sm mb-4 flex-grow">{{ art.description|linebreaksbr }}</p> <div class="flex justify-between items-center mt-auto pt-4">
+                    <div class="flex items-center">
+                        <button class="like-button text-gray-400 hover:text-red-500 transition duration-200 focus:outline-none text-2xl" data-item-id="artwork-{{ art.id }}">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <span class="ml-1 text-sm font-semibold">0</span> </div>
+                    {% if art.instagram_link %}
+                    <a href="{{ art.instagram_link }}" target="_blank" class="transition duration-300"> <i class="fab fa-instagram fa-2x"></i>
+                    </a>
+                    {% endif %}
                 </div>
             </div>
-            {% endfor %}
         </div>
-    </main>
-
-    <footer class="bg-gray-800 text-gray-300 py-10 mt-10">
-        <div class="container mx-auto px-6 text-center">
-            <p class="text-sm">&copy; {% now "Y" %} ToEternity.shop. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-85 justify-center items-center p-4 z-[100] hidden opacity-0" style="transition: opacity 0.3s ease-out;">
-        <img id="modalImage" src="" alt="Повноекранне зображення" class="max-w-[90%] max-h-[90%] object-contain shadow-lg rounded">
-        <button id="closeModalButton" class="absolute top-3 right-3 sm:top-5 sm:right-5 text-white text-4xl hover:text-gray-300 transition-colors focus:outline-none">&times;</button>
+        {% endfor %}
     </div>
+</main>
+
+<footer class="bg-black text-gray-400 py-10 mt-10"> <div class="container mx-auto px-6 text-center">
+        <p class="text-sm">&copy; {% now "Y" %} ToEternity.shop. All rights reserved.</p>
+    </div>
+</footer>
+
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-85 justify-center items-center p-4 z-[100] hidden opacity-0"> <img id="modalImage" src="" alt="Повноекранне зображення" class="max-w-[90%] max-h-[90%] object-contain shadow-lg rounded">
+    <button id="closeModalButton" class="absolute top-3 right-3 sm:top-5 sm:right-5 text-white text-4xl hover:text-gray-300 focus:outline-none">&times;</button>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-
 <script>
     // Скрипт для мобільного меню 
     const mobileMenuButton = document.getElementById('mobile-menu-button');
@@ -298,7 +313,6 @@
             }
         });
         
-        // Закриття мобільного меню при кліку на якірне посилання в ньому
         document.querySelectorAll('#mobile-menu a[href^="/#"]').forEach(link => {
             link.addEventListener('click', () => {
                 mobileMenu.classList.remove('active');
@@ -309,18 +323,20 @@
         });
     }
 
-    // Встановлення поточного року в футері (якщо елемент з currentYear є)
-    const currentYearEl = document.getElementById('currentYear');
-    if (currentYearEl) {
-        currentYearEl.textContent = new Date().getFullYear();
-    }
+    // Встановлення поточного року в футері
+    // const currentYearEl = document.getElementById('currentYear'); // Цього ID немає у вашому футері
+    // if (currentYearEl) {
+    //     currentYearEl.textContent = new Date().getFullYear();
+    // }
+    // Замість цього, якщо хочете динамічний рік, додайте span з id="currentYear" у футер
+    // Або просто використовуйте {% now "Y" %} як у вас вже є - це краще.
     
     // Логіка для мобільного підменю 
     function toggleMobileSubmenu(submenuId) {
         const submenu = document.getElementById(submenuId);
         if (submenu) {
             submenu.classList.toggle('hidden');
-            const buttonIcon = event.currentTarget.querySelector('i');
+            const buttonIcon = event.currentTarget.querySelector('i'); // event тут може бути undefined, якщо викликається не з події
             if (buttonIcon) {
                 if (submenu.classList.contains('hidden')) {
                     buttonIcon.classList.remove('fa-chevron-up');
@@ -361,7 +377,7 @@
                     modalImage.src = "";
                 }, 300);
             }
-            closeModalButton.addEventListener('click', closeModalWindow);
+            if(closeModalButton) closeModalButton.addEventListener('click', closeModalWindow); // Перевірка
             imageModal.addEventListener('click', (event) => {
                 if (event.target === imageModal) closeModalWindow();
             });
@@ -372,12 +388,6 @@
             console.warn('Один або декілька елементів модального вікна зображень не знайдені на gallery.html.');
         }
         
-        // Intersection Observer для анімації карток при появі 
-        const productCards = document.querySelectorAll('.product-card'); // На gallery.html може не бути .product-card
-        if (productCards.length > 0) {
-            // ... (код Intersection Observer, якщо потрібен)
-        }
-
         // КОД ДЛЯ ЗАВАНТАЖЕННЯ ПОЧАТКОВИХ ЛАЙКІВ
         function loadInitialLikes() {
             fetch('/api/get_all_likes')
@@ -413,38 +423,36 @@
         const likeButtons = document.querySelectorAll('.like-button');
         if (likeButtons.length > 0) { 
             likeButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    // ... (код для лайків, він у вас вже був)
-                const heartIcon = button.querySelector('i');
-                const likeCounterSpan = button.nextElementSibling;
-                const itemId = button.dataset.itemId;
+                button.addEventListener('click', (event) => { // Додав event сюди
+                    const currentButton = event.currentTarget; // Використовуємо currentTarget
+                    const heartIcon = currentButton.querySelector('i');
+                    const likeCounterSpan = currentButton.nextElementSibling;
+                    const itemId = currentButton.dataset.itemId;
 
-                if (!itemId || !likeCounterSpan || !heartIcon) { 
-                    console.error('Компоненти кнопки лайка не знайдені для:', button);
-                    return;
-                }
-
-                const isLiked = heartIcon.classList.contains('fas');
-                const apiEndpoint = isLiked ? `/api/unlike/${itemId}` : `/api/like/${itemId}`;
-                
-                fetch(apiEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                .then(response => response.ok ? response.json() : Promise.reject(response))
-                .then(data => {
-                    if (data.success) {
-                        likeCounterSpan.textContent = data.current_likes_on_server;
-                        heartIcon.classList.toggle('fas', data.current_likes_on_server > 0);
-                        heartIcon.classList.toggle('text-red-500', data.current_likes_on_server > 0);
-                        heartIcon.classList.toggle('far', data.current_likes_on_server <= 0);
-                        heartIcon.classList.toggle('text-gray-400', data.current_likes_on_server <= 0);
-                    } else {
-                       loadInitialLikes(); 
+                    if (!itemId || !likeCounterSpan || !heartIcon) { 
+                        console.error('Компоненти кнопки лайка не знайдені для:', currentButton);
+                        return;
                     }
-                })
-                .catch(error => {
-                    console.error(`Помилка fetch (лайк/анлайк) для ${itemId} на gallery.html:`, error);
-                });
 
-
+                    const isLiked = heartIcon.classList.contains('fas');
+                    const apiEndpoint = isLiked ? `/api/unlike/${itemId}` : `/api/like/${itemId}`;
+                    
+                    fetch(apiEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                    .then(response => response.ok ? response.json() : Promise.reject(response))
+                    .then(data => {
+                        if (data.success) {
+                            likeCounterSpan.textContent = data.current_likes_on_server;
+                            heartIcon.classList.toggle('fas', data.current_likes_on_server > 0);
+                            heartIcon.classList.toggle('text-red-500', data.current_likes_on_server > 0);
+                            heartIcon.classList.toggle('far', data.current_likes_on_server <= 0);
+                            heartIcon.classList.toggle('text-gray-400', data.current_likes_on_server <= 0);
+                        } else {
+                           loadInitialLikes(); 
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Помилка fetch (лайк/анлайк) для ${itemId} на gallery.html:`, error);
+                    });
                 });
             });
         }
@@ -452,7 +460,6 @@
         // КОД ДЛЯ ЕФЕКТУ ТІНІ ШАПКИ (якщо шапка sticky)
         const header = document.querySelector('header.sticky'); 
         if (header) { 
-            // ... (код для header-scrolled)
              const scrollThreshold = 10; 
             window.addEventListener('scroll', () => {
                 if (window.scrollY > scrollThreshold) {
@@ -462,93 +469,14 @@
                 }
             });
         }
-
-        // КОД ДЛЯ АНІМАЦІЇ КУЛЬОК (якщо потрібен на цій сторінці)
-        const balloonContainer = document.getElementById('balloon-container');
-        // ... (функції createBalloon, startBalloonAnimation, якщо потрібні)
-
-        // КОД ДЛЯ СПОВІЩЕННЯ-ПРИВІТАННЯ (навряд чи потрібен на gallery.html)
-        // ...
-
-        // КОД ДЛЯ АНІМАЦІЇ ЗОРЯНОГО НЕБА (particles.js, якщо потрібен)
-        // ... (particlesJS, якщо елементи є на цій сторінці)
-
-        // АНІМАЦІЯ ТЕКСТУ В БАНЕРАХ ПРИ ПРОКРУТЦІ (навряд чи потрібен на gallery.html)
-        // ...
-
-        // ЛОГІКА ДЛЯ РОЗГОРТАННЯ ДЕТАЛЕЙ КОЛЕКЦІЇ (навряд чи потрібен на gallery.html)
-        // ...
         
-        // ЛОГІКА ТАЙМЕРА ЗВОРОТНОГО ВІДЛІКУ ТА ЙОГО МОДАЛЬНОГО ВІКНА
-        const launchDate = new Date(2025, 5, 6, 20, 0, 0).getTime(); 
-        const widgetDaysEl = document.getElementById('widget-days');
-        const widgetHoursEl = document.getElementById('widget-hours');
-        const widgetMinutesEl = document.getElementById('widget-minutes');
-        const widgetSecondsEl = document.getElementById('widget-seconds');
-        const modalCountdownEl = document.getElementById('modal-countdown');
-        const countdownTimerDisplay = document.getElementById('countdown-timer'); 
+        // Тут можуть бути інші скрипти з index.html, якщо вони глобальні 
+        // і потрібні на сторінці галереї (наприклад, анімації появи елементів при скролі, 
+        // якщо вони використовуються для карток галереї).
+        // Я залишив основні: мобільне меню, модальне вікно зображень, лайки, тінь шапки.
+        // Код для particles.js, анімації кульок, сповіщення-привітання, анімації тексту в банерах, 
+        // деталей колекції та таймера тут не потрібен, оскільки цих елементів немає на сторінці галереї.
 
-        const countdownInterval = setInterval(() => {
-            const now = new Date().getTime();
-            const distance = launchDate - now;
-            const formatTime = (time) => time < 10 ? `0${time}` : time;
-
-            if (distance < 0) {
-                // ... (код для завершення таймера)
-                 clearInterval(countdownInterval);
-                const siteLaunchedMsg = "<div class='text-xl text-purple-700'>Сайт запущено!</div>";
-                const persistentWidgetCountdown = document.getElementById('widget-countdown');
-                if (persistentWidgetCountdown) persistentWidgetCountdown.innerHTML = siteLaunchedMsg;
-                if (modalCountdownEl) modalCountdownEl.innerHTML = "Сайт запущено!";
-                const viewMoreButton = document.getElementById('view-more-timer-button');
-                if(viewMoreButton) viewMoreButton.style.display = 'none';
-                if (countdownTimerDisplay) countdownTimerDisplay.innerHTML = siteLaunchedMsg.replace('text-xl', 'text-3xl'); 
-                return;
-            }
-
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            // ... (розрахунок hours, minutes, seconds)
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-
-            if (widgetDaysEl) widgetDaysEl.innerText = formatTime(days);
-            // ... (оновлення widgetHoursEl, widgetMinutesEl, widgetSecondsEl)
-            if (widgetHoursEl) widgetHoursEl.innerText = formatTime(hours);
-            if (widgetMinutesEl) widgetMinutesEl.innerText = formatTime(minutes);
-            if (widgetSecondsEl) widgetSecondsEl.innerText = formatTime(seconds);
-
-            
-            if (modalCountdownEl) {
-                modalCountdownEl.innerText = `${formatTime(days)}д : ${formatTime(hours)}г : ${formatTime(minutes)}хв : ${formatTime(seconds)}с`;
-            }
-        }, 1000);
-
-        const viewMoreTimerButton = document.getElementById('view-more-timer-button');
-        const timerModal = document.getElementById('timerModal');
-        const closeTimerModalButton = document.getElementById('closeTimerModalButton');
-
-        if (viewMoreTimerButton && timerModal && closeTimerModalButton) {
-            // ... (код для відкриття/закриття модального вікна таймера)
-            const openTimerModal = () => {
-                if (launchDate - new Date().getTime() < 0) return; 
-                timerModal.classList.remove('hidden');
-                setTimeout(() => timerModal.classList.add('active'), 10);
-            };
-            const closeTimerModal = () => {
-                timerModal.classList.remove('active');
-                setTimeout(() => timerModal.classList.add('hidden'), 400);
-            };
-            viewMoreTimerButton.addEventListener('click', openTimerModal);
-            closeTimerModalButton.addEventListener('click', closeTimerModal);
-            timerModal.addEventListener('click', (e) => {
-                if (e.target === timerModal) closeTimerModal();
-            });
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && timerModal.classList.contains('active')) closeTimerModal();
-            });
-        }
     }); // Кінець document.addEventListener('DOMContentLoaded', ...);
 </script>
 </body>

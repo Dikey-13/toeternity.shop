@@ -1,0 +1,256 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Всі Колекції - ToEternity</title>
+    <link rel="icon" href="{% static 'img/ToEternity_LOGO.png' %}" type="image/png">
+    <meta name="description" content="Перегляньте всі колекції цифрового одягу, арт-об'єктів та меблів від ToEternity.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            color: #e5e7eb; /* text-gray-200 */
+        }
+        html { scroll-behavior: smooth; }
+        .mobile-menu { display: none; }
+        .mobile-menu.active { display: block; }
+        .scroll-mt-header { scroll-margin-top: 70px; }
+
+        header { 
+            transition: box-shadow 0.3s ease-in-out;
+            background-color: #1f2937; /* bg-gray-800 */
+        }
+        .header-scrolled { 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        header nav > a, header nav .group > a {
+            position: relative; text-decoration: none; display: inline-block; 
+            padding-bottom: 6px; color: #d1d5db; /* text-gray-300 */
+        }
+        header nav > a:hover, header nav .group > a:hover { 
+            color: #ffffff; /* text-white */
+        }
+        header nav > a::after, header nav .group > a::after {
+            content: ''; position: absolute; width: 0%; height: 2px;
+            background-color: #ffffff; bottom: 0; left: 50%;
+            transform: translateX(-50%); transition: width 0.3s ease-in-out;
+        }
+        header nav > a:hover::after, header nav .group > a:hover::after { width: 100%; }
+        
+        header .absolute.bg-white.rounded-md.shadow-lg {
+            background-color: #374151; /* bg-gray-700 */
+            border: 1px solid #4b5563; /* border-gray-600 */
+        }
+        header .absolute.bg-white.rounded-md.shadow-lg a { color: #d1d5db; }
+        header .absolute.bg-white.rounded-md.shadow-lg a:hover {
+            background-color: #4b5563; color: #ffffff;
+        }
+        header .absolute.bg-white.rounded-md.shadow-lg .fa-chevron-right { color: #9ca3af; }
+
+        /* Стилі для карток колекцій на цій сторінці */
+        .collection-list-card {
+            background-color: #1f2937; /* bg-gray-800 */
+            /* color: #e5e7eb; - успадковується від body */
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .collection-list-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 6px 6px rgba(0,0,0,0.22); /* Покращена тінь для темної теми */
+        }
+        .collection-list-card h3 {
+            color: #ffffff; /* text-white */
+        }
+        .collection-list-card p {
+            color: #d1d5db; /* text-gray-300 */
+        }
+        .collection-list-card .view-collection-button {
+            background-color: #4f46e5; /* bg-indigo-600 */
+            color: white;
+        }
+        .collection-list-card .view-collection-button:hover {
+            background-color: #4338ca; /* bg-indigo-700 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <header class="bg-gray-800 sticky top-0 z-50 transition-all duration-300 ease-in-out">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="{% url 'home' %}" class="flex items-center space-x-2 group">
+                <img src="{% static 'img/ToEternity_shop.png' %}" alt="Логотип ToEternity" class="h-8"> 
+                <span class="text-2xl font-bold text-gray-100 group-hover:text-white transition-colors duration-300"></span>
+            </a>
+            <nav class="hidden md:flex space-x-4 xl:space-x-6 items-center">
+                <a href="{% url 'home' %}#arts" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Art</a>
+                <a href="{% url 'home' %}#special-offers" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Special offers</a>
+                <a href="{% url 'home' %}#collections" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Collections</a> 
+                <div class="relative group pb-2 flex items-center"> 
+                    <a href="{% url 'home' %}#digital-fashion" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1 rounded-md inline-flex items-center">
+                        <span>Clothing</span>
+                        <i class="fas fa-chevron-down fa-xs ml-2 transition-transform duration-200 group-hover:rotate-180"></i>
+                    </a>
+                    <div class="absolute left-0 mt-2 w-48 rounded-md shadow-lg py-1 z-20 hidden group-hover:block transition-all duration-300 opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100">
+                        <div class="relative group/submenu pr-1">
+                            <a href="{% url 'home' %}#digital-fashion-men" class="w-full text-left px-4 py-2 text-sm flex justify-between items-center">
+                                <span>Men</span><i class="fas fa-chevron-right fa-xs"></i>
+                            </a>
+                            <div class="absolute left-full top-0 mt-0 ml-1 w-48 rounded-md shadow-lg py-1 z-30 hidden group-hover/submenu:block">
+                                <a href="{% url 'home' %}#digital-fashion-men-top" class="block px-4 py-2 text-sm">Top</a>
+                                <a href="{% url 'home' %}#digital-fashion-men-bottom" class="block px-4 py-2 text-sm">Bottom</a>
+                                <a href="{% url 'home' %}#digital-fashion-men-shoes" class="block px-4 py-2 text-sm">Shoes</a>
+                                <a href="{% url 'home' %}#digital-fashion-men-accessories" class="block px-4 py-2 text-sm">Accessories</a>
+                            </div>
+                        </div>
+                        <div class="relative group/submenu pr-1">
+                            <a href="{% url 'home' %}#digital-fashion-women" class="w-full text-left px-4 py-2 text-sm flex justify-between items-center">
+                                <span>Women</span><i class="fas fa-chevron-right fa-xs"></i>
+                            </a>
+                            <div class="absolute left-full top-0 mt-0 ml-1 w-48 rounded-md shadow-lg py-1 z-30 hidden group-hover/submenu:block">
+                                <a href="{% url 'home' %}#digital-fashion-women-top" class="block px-4 py-2 text-sm">Top</a>
+                               <a href="{% url 'home' %}#digital-fashion-women-bottom" class="block px-4 py-2 text-sm">Bottom</a>
+                               <a href="{% url 'home' %}#digital-fashion-women-shoes" class="block px-4 py-2 text-sm">Shoes</a>
+                               <a href="{% url 'home' %}#digital-fashion-women-accessories" class="block px-4 py-2 text-sm">Accessories</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'home' %}#furniture" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Furniture</a>
+                <a href="{% url 'home' %}#creators-spotlight" class="text-gray-300 hover:text-white transition duration-300 px-2 py-1">Creators</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+                <i class="fas fa-bars fa-lg"></i>
+            </button>
+        </div>
+        <div id="mobile-menu" class="mobile-menu md:hidden bg-gray-700 shadow-lg absolute w-full">
+            <a href="{% url 'home' %}#arts" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Art</a>
+            <a href="{% url 'home' %}#special-offers" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Special offers</a>
+            <a href="{% url 'home' %}#collections" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Collections</a>
+            <div>
+                <button onclick="toggleMobileSubmenu('digital-fashion-submenu-mobile')" class="w-full text-left flex justify-between items-center px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">
+                    <span>Clothing</span><i class="fas fa-chevron-down fa-xs ml-2"></i>
+                </button>
+                <div id="digital-fashion-submenu-mobile" class="hidden pl-6 bg-gray-700">
+                    <div>
+                        <button onclick="toggleMobileSubmenu('digital-fashion-men-submenu-mobile')" class="w-full text-left flex justify-between items-center px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">
+                            <span>Men</span><i class="fas fa-chevron-right fa-xs ml-2"></i>
+                        </button>
+                        <div id="digital-fashion-men-submenu-mobile" class="hidden pl-4 bg-gray-700">
+                            <a href="{% url 'home' %}#digital-fashion-men-top" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Top</a>
+                            </div>
+                    </div>
+                    <div>
+                        <button onclick="toggleMobileSubmenu('digital-fashion-women-submenu-mobile')" class="w-full text-left flex justify-between items-center px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">
+                            <span>Women</span><i class="fas fa-chevron-right fa-xs ml-2"></i>
+                        </button>
+                        <div id="digital-fashion-women-submenu-mobile" class="hidden pl-4 bg-gray-700">
+                            <a href="{% url 'home' %}#digital-fashion-women-top" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">Top</a>
+                            </div>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'home' %}#furniture" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Furniture</a>
+            <a href="{% url 'home' %}#creators-spotlight" class="block px-6 py-3 text-gray-300 hover:bg-gray-600 hover:text-white transition duration-300">Creators</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-10">
+        <h1 class="text-4xl font-bold text-white mb-10 text-center">Наші Колекції</h1>
+        
+        {% if collections_list %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                {% for collection_obj in collections_list %} {# Правильна змінна тут #}
+                <div class="collection-list-card rounded-xl shadow-xl overflow-hidden h-full flex flex-col">
+                    <a href="{% url 'collection_detail' collection_obj.pk %}" class="block hover:opacity-90 transition-opacity">
+                        {% if collection_obj.preview_image %}
+                        <div class="h-72 w-full overflow-hidden"> <img src="{{ collection_obj.preview_image.url }}" alt="Прев'ю колекції {{ collection_obj.name }}" class="w-full h-full object-cover">
+                        </div>
+                        {% else %}
+                        <div class="h-72 w-full bg-slate-700 flex items-center justify-center rounded-t-xl">
+                            <i class="fas fa-photo-video fa-4x text-gray-500"></i>
+                        </div>
+                        {% endif %}
+                    </a>
+                    <div class="p-5 md:p-6 flex flex-col flex-grow">
+                        <h3 class="text-xl md:text-2xl font-semibold mb-2">{{ collection_obj.name }}</h3>
+                        {% if collection_obj.description %}
+                            <p class="text-sm mb-4 flex-grow">{{ collection_obj.description|truncatewords:15|linebreaksbr }}</p>
+                        {% endif %}
+                        <div class="mt-auto">
+                            <a href="{% url 'collection_detail' collection_obj.pk %}" class="view-collection-button inline-block w-full text-center py-2.5 px-4 rounded-md font-semibold transition-colors duration-300 text-sm">
+                                Переглянути колекцію <i class="fas fa-arrow-right fa-xs ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-xl text-gray-400 py-10">Поки що немає доступних колекцій. Загляньте пізніше!</p>
+        {% endif %}
+    </main>
+
+    <footer class="bg-black text-gray-400 py-10 mt-16">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-sm">&copy; {% now "Y" %} ToEternity.shop. All rights reserved.</p>
+        </div>
+    </footer>
+    
+<script>
+    // Скрипт для мобільного меню 
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            const icon = mobileMenuButton.querySelector('i');
+            if (mobileMenu.classList.contains('active')) {
+                icon.classList.remove('fa-bars'); icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times'); icon.classList.add('fa-bars');
+            }
+        });
+        
+        // THIS IS THE LINE TO CHECK AND CORRECT
+        document.querySelectorAll('#mobile-menu a[href^="/#"]').forEach(link => { 
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                const icon = mobileMenuButton.querySelector('i');
+                // It's good practice to check if 'icon' exists before trying to modify its classList
+                if (icon) { 
+                    icon.classList.remove('fa-times'); 
+                    icon.classList.add('fa-bars');
+                }
+            });
+        });
+        // This second selector was for same-page anchors, less relevant here if all menu items go to home
+        // document.querySelectorAll('#mobile-menu a[href^="#"]').forEach(link => {
+        //     if (!link.getAttribute('href').startsWith('/#')) { 
+        //         link.addEventListener('click', () => {
+        //             // ... same logic to close menu ...
+        //         });
+        //     }
+        // });
+    }
+
+    function toggleMobileSubmenu(submenuId) {
+        // ... (your toggleMobileSubmenu function) ...
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const header = document.querySelector('header.sticky'); 
+        if (header) { 
+            // ... (header scroll logic) ...
+        }
+        // ... (other JS for likes, image modals, etc., IF they are present on collections_list.html) ...
+        // For collections_list.html, you mostly just need the mobile menu and header logic.
+        // The like system for individual collections (if you implement it) would be here.
+    });
+</script>
+</body>
+</html>
