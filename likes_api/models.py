@@ -1,3 +1,5 @@
+import os 
+
 # likes_api/models.py
 from django.db import models
 from django.utils import timezone
@@ -76,3 +78,17 @@ class ClothingItem(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_gender_display()} - {self.get_category_display()}) - з колекції '{self.collection.name}'"
+    
+    # ===== НОВА МОДЕЛЬ ДЛЯ ЗОБРАЖЕНЬ КОЛЕКЦІЇ =====
+class CollectionImage(models.Model):
+    collection = models.ForeignKey(Collection, related_name='images', on_delete=models.CASCADE, verbose_name="Колекція")
+    image = models.ImageField(upload_to='collection_galleries/', verbose_name="Зображення")
+    caption = models.CharField(max_length=255, blank=True, verbose_name="Підпис до зображення (необов'язково)")
+
+    class Meta:
+        verbose_name = "Зображення колекції"
+        verbose_name_plural = "Зображення колекцій"
+
+    def __str__(self):
+        # Повертає назву файлу зображення для кращого відображення в адмінці
+        return f"Зображення для '{self.collection.name}': {os.path.basename(self.image.name)}"

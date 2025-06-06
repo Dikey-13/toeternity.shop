@@ -1,27 +1,34 @@
 # likes_api/admin.py
 from django.contrib import admin
-from .models import Artwork, Like, Collection, ClothingItem # Додаємо Collection та ClothingItem
+from .models import Artwork, Like, Collection, ClothingItem, CollectionImage # Додаємо CollectionImage
 
-# Кастомізація відображення Artwork в адмінці
-class ArtworkAdmin(admin.ModelAdmin):
-    list_display = ('title', 'created_at') # Які поля показувати у списку
-    search_fields = ('title', 'description') # За якими полями можна шукати
-    list_filter = ('created_at',) # Фільтр за датою
+# Inline-редактор для зображень колекції
+# Це дозволить додавати зображення прямо на сторінці редагування колекції
+class CollectionImageInline(admin.TabularInline):
+    model = CollectionImage
+    extra = 1 # Показує один порожній слот для завантаження нового зображення
 
-# Кастомізація відображення Collection в адмінці
+# Оновлюємо адмін-клас для Collection, щоб він використовував inline-редактор
 class CollectionAdmin(admin.ModelAdmin):
     list_display = ('name', 'created_at')
     search_fields = ('name', 'description')
-    list_filter = ('created_at',)
+    inlines = [CollectionImageInline, ] # Додаємо сюди наш inline-редактор
 
-# Кастомізація відображення ClothingItem в адмінці
+# Клас для ClothingItem залишається як був
 class ClothingItemAdmin(admin.ModelAdmin):
     list_display = ('name', 'collection', 'gender', 'category', 'added_at')
-    list_filter = ('collection', 'gender', 'category', 'added_at') # Додаємо фільтри
-    search_fields = ('name', 'description', 'collection__name') # Можна шукати за назвою колекції
+    list_filter = ('collection', 'gender', 'category', 'added_at')
+    search_fields = ('name', 'description', 'collection__name')
+
+# Клас для Artwork залишається як був (або ваші налаштування для нього)
+class ArtworkAdmin(admin.ModelAdmin):
+    list_display = ('title', 'created_at')
+    search_fields = ('title', 'description')
+    list_filter = ('created_at',)
 
 # Реєструємо моделі
 admin.site.register(Artwork, ArtworkAdmin)
-admin.site.register(Like) # Для Like поки проста реєстрація
-admin.site.register(Collection, CollectionAdmin)
+admin.site.register(Like)
+admin.site.register(Collection, CollectionAdmin) # Реєструємо Collection з новими налаштуваннями
 admin.site.register(ClothingItem, ClothingItemAdmin)
+# Окремо реєструвати CollectionImage не потрібно, оскільки вона вже включена через inline

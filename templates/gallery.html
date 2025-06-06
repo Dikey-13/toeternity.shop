@@ -287,7 +287,7 @@
 </main>
 
 <footer class="bg-black text-gray-400 py-10 mt-10"> <div class="container mx-auto px-6 text-center">
-        <p class="text-sm">&copy; {% now "Y" %} ToEternity.shop. All rights reserved.</p>
+        <p class="text-sm">&copy; {% now "Y" %} ToEternity.shop All rights reserved.</p>
     </div>
 </footer>
 
@@ -423,17 +423,26 @@
         const likeButtons = document.querySelectorAll('.like-button');
         if (likeButtons.length > 0) { 
             likeButtons.forEach(button => {
-                button.addEventListener('click', (event) => { // Додав event сюди
-                    const currentButton = event.currentTarget; // Використовуємо currentTarget
+                button.addEventListener('click', (event) => { 
+                    const currentButton = event.currentTarget;
+                    
+                    // --- ПОКРАЩЕНА ЛОГІКА ПОШУКУ ЕЛЕМЕНТІВ ---
+                    // Знаходимо найближчий батьківський елемент, що містить і кнопку, і лічильник
+                    const likeContainer = currentButton.parentElement; 
+                    if (!likeContainer) return; // Якщо не знайшли, нічого не робимо
+
                     const heartIcon = currentButton.querySelector('i');
-                    const likeCounterSpan = currentButton.nextElementSibling;
+                    // Шукаємо span з лічильником всередині цього батьківського елемента
+                    const likeCounterSpan = likeContainer.querySelector('span'); 
+                    // --- КІНЕЦЬ ПОКРАЩЕНОЇ ЛОГІКИ ---
+                    
                     const itemId = currentButton.dataset.itemId;
 
                     if (!itemId || !likeCounterSpan || !heartIcon) { 
-                        console.error('Компоненти кнопки лайка не знайдені для:', currentButton);
+                        console.error('Не вдалося знайти всі елементи для кнопки лайка:', currentButton);
                         return;
                     }
-
+                    
                     const isLiked = heartIcon.classList.contains('fas');
                     const apiEndpoint = isLiked ? `/api/unlike/${itemId}` : `/api/like/${itemId}`;
                     
@@ -441,32 +450,21 @@
                     .then(response => response.ok ? response.json() : Promise.reject(response))
                     .then(data => {
                         if (data.success) {
+                            // Оновлюємо інтерфейс з новими даними, які прийшли від сервера
                             likeCounterSpan.textContent = data.current_likes_on_server;
                             heartIcon.classList.toggle('fas', data.current_likes_on_server > 0);
                             heartIcon.classList.toggle('text-red-500', data.current_likes_on_server > 0);
                             heartIcon.classList.toggle('far', data.current_likes_on_server <= 0);
                             heartIcon.classList.toggle('text-gray-400', data.current_likes_on_server <= 0);
                         } else {
+                           // Якщо сервер повернув success: false, перезавантажуємо початкові лайки, щоб синхронізувати
                            loadInitialLikes(); 
                         }
                     })
                     .catch(error => {
-                        console.error(`Помилка fetch (лайк/анлайк) для ${itemId} на gallery.html:`, error);
+                        console.error(`Помилка fetch (лайк/анлайк) для ${itemId}:`, error);
                     });
                 });
-            });
-        }
-        
-        // КОД ДЛЯ ЕФЕКТУ ТІНІ ШАПКИ (якщо шапка sticky)
-        const header = document.querySelector('header.sticky'); 
-        if (header) { 
-             const scrollThreshold = 10; 
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > scrollThreshold) {
-                    header.classList.add('header-scrolled');
-                } else {
-                    header.classList.remove('header-scrolled');
-                }
             });
         }
         

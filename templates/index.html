@@ -306,7 +306,7 @@
         <div id="hero-achievements" class="mt-6 mb-6 flex flex-nowrap justify-center items-center gap-4 sm:gap-6 text-white transition-all duration-[1500ms] ease-in-out"> 
             <div class="flex flex-col items-center text-center px-1">
                 <img src="{% static 'img/Discover.PNG' %}" alt="Нагорода Discover" class="h-20 w-20 mb-1"> <p class="text-xs font-semibold uppercase tracking-normal">Discover</p>
-                <p class="text-[10px] opacity-80">x26</p> 
+                <p class="text-[10px] opacity-80">x27</p> 
             </div>
             <div class="flex flex-col items-center text-center px-1">
                 <img src="{% static 'img/TopEditTuesday.PNG' %}" alt="Нагорода TopEditTuesday" class="h-20 w-20 mb-1"> <p class="text-xs font-semibold uppercase tracking-normal">TopEditTuesday</p>
@@ -423,8 +423,24 @@
                     {% if collection_obj.description %}
                         <p class="text-sm text-gray-300 mb-4 flex-grow">{{ collection_obj.description|truncatewords:15|linebreaksbr }}</p>
                     {% endif %}
+                    {# ===== НОВИЙ БЛОК: Список предметів у колекції на картці ===== #}
+<div class="mb-4 border-t border-slate-700 pt-3">
+    {% if collection_obj.items.all %}
+        <p class="text-xs text-gray-400 mb-2">Включає:</p>
+        <div class="flex flex-wrap gap-x-4 gap-y-1">
+            {% for item in collection_obj.items.all|slice:":4" %}
+                <a href="{{ item.imvu_link }}" target="_blank" class="text-sm text-indigo-300 hover:text-indigo-200 hover:underline transition-colors" title="{{ item.name }}">
+                    {{ item.name|truncatechars:20 }} </a>
+            {% endfor %}
+            {% if collection_obj.items.all.count > 4 %}
+                <span class="text-sm text-gray-500">...та інші</span>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{# ============================================================== #}
                     <div class="mt-auto"> <a href="{% url 'collection_detail' collection_obj.pk %}" class="view-collection-button inline-block w-full text-center py-2.5 px-4 rounded-md font-semibold transition-colors duration-300 bg-indigo-600 text-white hover:bg-indigo-700">
-                            Переглянути колекцію <i class="fas fa-arrow-right fa-xs ml-1"></i>
+                            View the collection <i class="fas fa-arrow-right fa-xs ml-1"></i>
                         </a>
                     </div>
                 </div>
@@ -555,7 +571,7 @@
 
     <footer class="bg-gray-800 text-gray-300 py-10">
         <div class="container mx-auto px-6 text-center">
-            <p class="text-sm">© <span id="currentYear"></span> ToEternity.shop. All rights reserved.</p>
+            <p class="text-sm">© <span id="currentYear"></span> ToEternity.shop All rights reserved.</p>
             <p class="text-xs mt-1">A website for showcasing creative products.</p>
         </div>
     </footer>
@@ -740,47 +756,49 @@
         }
 
         // ---- КОД ДЛЯ КНОПОК "ВПОДОБАТИ" (з функцією АНЛАЙКУ) ----
-        const likeButtons = document.querySelectorAll('.like-button'); // Оголошуємо likeButtons тут
+        const likeButtons = document.querySelectorAll('.like-button');
         if (likeButtons.length > 0) { 
             likeButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const heartIcon = button.querySelector('i');
-                    const likeCounterSpan = button.nextElementSibling;
-                    const itemId = button.dataset.itemId;
+                button.addEventListener('click', (event) => { 
+                    const currentButton = event.currentTarget;
+                    
+                    // --- ПОКРАЩЕНА ЛОГІКА ПОШУКУ ЕЛЕМЕНТІВ ---
+                    // Знаходимо найближчий батьківський елемент, що містить і кнопку, і лічильник
+                    const likeContainer = currentButton.parentElement; 
+                    if (!likeContainer) return; // Якщо не знайшли, нічого не робимо
+
+                    const heartIcon = currentButton.querySelector('i');
+                    // Шукаємо span з лічильником всередині цього батьківського елемента
+                    const likeCounterSpan = likeContainer.querySelector('span'); 
+                    // --- КІНЕЦЬ ПОКРАЩЕНОЇ ЛОГІКИ ---
+                    
+                    const itemId = currentButton.dataset.itemId;
 
                     if (!itemId || !likeCounterSpan || !heartIcon) { 
-                        console.error('Компоненти кнопки лайка не знайдені для:', button);
+                        console.error('Не вдалося знайти всі елементи для кнопки лайка:', currentButton);
                         return;
                     }
-
+                    
                     const isLiked = heartIcon.classList.contains('fas');
                     const apiEndpoint = isLiked ? `/api/unlike/${itemId}` : `/api/like/${itemId}`;
-                    const actionDesc = isLiked ? 'зняття лайка' : 'встановлення лайка';
-
-                    console.log(`-> ${actionDesc} для ${itemId}`);
+                    
                     fetch(apiEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Помилка сервера (${response.status}): ${response.statusText}`);
-                        return response.json();
-                    })
+                    .then(response => response.ok ? response.json() : Promise.reject(response))
                     .then(data => {
-                        console.log(`<- Сервер (${actionDesc}) для ${itemId}:`, data);
                         if (data.success) {
+                            // Оновлюємо інтерфейс з новими даними, які прийшли від сервера
                             likeCounterSpan.textContent = data.current_likes_on_server;
-                            if (data.current_likes_on_server > 0) {
-                                heartIcon.classList.remove('far', 'text-gray-400');
-                                heartIcon.classList.add('fas', 'text-red-500');
-                            } else {
-                                heartIcon.classList.remove('fas', 'text-red-500');
-                                heartIcon.classList.add('far', 'text-gray-400');
-                            }
+                            heartIcon.classList.toggle('fas', data.current_likes_on_server > 0);
+                            heartIcon.classList.toggle('text-red-500', data.current_likes_on_server > 0);
+                            heartIcon.classList.toggle('far', data.current_likes_on_server <= 0);
+                            heartIcon.classList.toggle('text-gray-400', data.current_likes_on_server <= 0);
                         } else {
-                             console.error(`Помилка (${actionDesc}) на сервері для ${itemId}:`, data.message);
-                             loadInitialLikes(); 
+                           // Якщо сервер повернув success: false, перезавантажуємо початкові лайки, щоб синхронізувати
+                           loadInitialLikes(); 
                         }
                     })
                     .catch(error => {
-                        console.error(`Помилка fetch (${actionDesc}) для ${itemId}:`, error);
+                        console.error(`Помилка fetch (лайк/анлайк) для ${itemId}:`, error);
                     });
                 });
             });
