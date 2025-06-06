@@ -699,110 +699,125 @@
             productCards.forEach(card => cardIntersectionObserver.observe(card));
         }
 
-        // ---- КОД ДЛЯ ЗАВАНТАЖЕННЯ ПОЧАТКОВИХ ЛАЙКІВ ----
+               // =========================================================
+        // ===== КОД ДЛЯ СИСТЕМИ ЛАЙКІВ З LOCALSTORAGE (ОНОВЛЕНО) =====
+        // =========================================================
+
+        // --- Допоміжні функції для роботи з localStorage ---
+        function getLikedItemsFromStorage() {
+            const likedItems = localStorage.getItem('toeternity_liked_items');
+            return likedItems ? JSON.parse(likedItems) : {};
+        }
+
+        function saveLikedItemsToStorage(likedItems) {
+            localStorage.setItem('toeternity_liked_items', JSON.stringify(likedItems));
+        }
+        // --- Кінець допоміжних функцій ---
+
+
+        // =========================================================
+        // ===== КОД ДЛЯ СИСТЕМИ ЛАЙКІВ З LOCALSTORAGE (ЄДИНИЙ ПРАВИЛЬНИЙ ВАРІАНТ) =====
+        // =========================================================
+
+        // --- Допоміжні функції для роботи з localStorage ---
+        function getLikedItemsFromStorage() {
+            const likedItems = localStorage.getItem('toeternity_liked_items');
+            return likedItems ? JSON.parse(likedItems) : {};
+        }
+
+        function saveLikedItemsToStorage(likedItems) {
+            localStorage.setItem('toeternity_liked_items', JSON.stringify(likedItems));
+        }
+        // --- Кінець допоміжних функцій ---
+
+
+        // ОНОВЛЕНА ФУНКЦІЯ завантаження початкових лайків
         function loadInitialLikes() {
+            const userLikedItems = getLikedItemsFromStorage();
             fetch('/api/get_all_likes')
-                .then(response => {
-                    if (!response.ok) throw new Error(`Помилка сервера (лайки): ${response.status} ${response.statusText}`);
-                    return response.json();
-                })
+                .then(response => response.ok ? response.json() : Promise.reject(response))
                 .then(data => {
                     if (data.success && data.likes) {
-                        console.log('Отримані лайки:', data.likes);
                         document.querySelectorAll('.like-button').forEach(button => {
                             const itemId = button.dataset.itemId;
-                            const likeCounterSpan = button.nextElementSibling;
+                            const likeContainer = button.parentElement;
+                            if (!likeContainer) return;
+                            
+                            const likeCounterSpan = likeContainer.querySelector('span');
                             const heartIcon = button.querySelector('i');
-                            if (!itemId || !likeCounterSpan || !heartIcon) {
-                                console.warn('Пропущено кнопку лайка через відсутність даних або елементів', button);
-                                return;
-                            }
+                            if (!itemId || !likeCounterSpan || !heartIcon) return;
 
-                            if (data.likes.hasOwnProperty(itemId)) {
-                                const count = data.likes[itemId];
-                                likeCounterSpan.textContent = count;
-                                if (count > 0) {
-                                    heartIcon.classList.remove('far', 'text-gray-400');
-                                    heartIcon.classList.add('fas', 'text-red-500');
-                                } else {
-                                    heartIcon.classList.remove('fas', 'text-red-500');
-                                    heartIcon.classList.add('far', 'text-gray-400');
-                                }
+                            likeCounterSpan.textContent = data.likes[itemId] || '0';
+                            
+                            if (userLikedItems[itemId]) {
+                                heartIcon.classList.add('fas', 'text-red-500');
+                                heartIcon.classList.remove('far', 'text-gray-400');
                             } else {
-                                likeCounterSpan.textContent = '0';
-                                heartIcon.classList.remove('fas', 'text-red-500');
                                 heartIcon.classList.add('far', 'text-gray-400');
+                                heartIcon.classList.remove('fas', 'text-red-500');
                             }
                         });
-                    } else {
-                         console.error('Помилка завантаження лайків або некоректна відповідь:', data.message);
                     }
                 })
-                .catch(error => console.error('Помилка fetch (get_all_likes):', error));
+                .catch(error => console.error('Помилка завантаження лайків:', error));
         }
-        loadInitialLikes(); 
 
-        // ---- КОД ДЛЯ ЕФЕКТУ ТІНІ ШАПКИ ----
-        const header = document.querySelector('header'); // Оголошуємо header тут
-        if (header) { 
-            const scrollThreshold = 10; 
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > scrollThreshold) {
-                    header.classList.add('header-scrolled');
-                } else {
-                    header.classList.remove('header-scrolled');
+        // ОНОВЛЕНИЙ ОБРОБНИК КЛІКУ на кнопку лайка
+        document.querySelectorAll('.like-button').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const currentButton = event.currentTarget;
+                const likeContainer = currentButton.parentElement;
+                if (!likeContainer) return;
+
+                const heartIcon = currentButton.querySelector('i');
+                const likeCounterSpan = likeContainer.querySelector('span');
+                const itemId = currentButton.dataset.itemId;
+
+                if (!itemId || !likeCounterSpan || !heartIcon) {
+                    console.error('Не вдалося знайти всі елементи для кнопки лайка:', currentButton);
+                    return;
                 }
-            });
-        }
 
-        // ---- КОД ДЛЯ КНОПОК "ВПОДОБАТИ" (з функцією АНЛАЙКУ) ----
-        const likeButtons = document.querySelectorAll('.like-button');
-        if (likeButtons.length > 0) { 
-            likeButtons.forEach(button => {
-                button.addEventListener('click', (event) => { 
-                    const currentButton = event.currentTarget;
-                    
-                    // --- ПОКРАЩЕНА ЛОГІКА ПОШУКУ ЕЛЕМЕНТІВ ---
-                    // Знаходимо найближчий батьківський елемент, що містить і кнопку, і лічильник
-                    const likeContainer = currentButton.parentElement; 
-                    if (!likeContainer) return; // Якщо не знайшли, нічого не робимо
+                const isCurrentlyLiked = heartIcon.classList.contains('fas');
+                const apiEndpoint = isCurrentlyLiked ? `/api/unlike/${itemId}` : `/api/like/${itemId}`;
+                
+                const currentCount = parseInt(likeCounterSpan.textContent, 10);
+                const newIsLiked = !isCurrentlyLiked;
+                likeCounterSpan.textContent = newIsLiked ? currentCount + 1 : currentCount - 1;
+                heartIcon.classList.toggle('fas', newIsLiked);
+                heartIcon.classList.toggle('text-red-500', newIsLiked);
+                heartIcon.classList.toggle('far', !newIsLiked);
+                heartIcon.classList.toggle('text-gray-400', !newIsLiked);
 
-                    const heartIcon = currentButton.querySelector('i');
-                    // Шукаємо span з лічильником всередині цього батьківського елемента
-                    const likeCounterSpan = likeContainer.querySelector('span'); 
-                    // --- КІНЕЦЬ ПОКРАЩЕНОЇ ЛОГІКИ ---
-                    
-                    const itemId = currentButton.dataset.itemId;
+                let likedItems = getLikedItemsFromStorage();
+                if (newIsLiked) {
+                    likedItems[itemId] = true;
+                } else {
+                    delete likedItems[itemId];
+                }
+                saveLikedItemsToStorage(likedItems);
 
-                    if (!itemId || !likeCounterSpan || !heartIcon) { 
-                        console.error('Не вдалося знайти всі елементи для кнопки лайка:', currentButton);
-                        return;
-                    }
-                    
-                    const isLiked = heartIcon.classList.contains('fas');
-                    const apiEndpoint = isLiked ? `/api/unlike/${itemId}` : `/api/like/${itemId}`;
-                    
-                    fetch(apiEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                    .then(response => response.ok ? response.json() : Promise.reject(response))
-                    .then(data => {
-                        if (data.success) {
-                            // Оновлюємо інтерфейс з новими даними, які прийшли від сервера
+                fetch(apiEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                .then(response => response.ok ? response.json() : Promise.reject(response))
+                .then(data => {
+                    if (data.success) {
+                        if (parseInt(likeCounterSpan.textContent, 10) !== data.current_likes_on_server) {
                             likeCounterSpan.textContent = data.current_likes_on_server;
-                            heartIcon.classList.toggle('fas', data.current_likes_on_server > 0);
-                            heartIcon.classList.toggle('text-red-500', data.current_likes_on_server > 0);
-                            heartIcon.classList.toggle('far', data.current_likes_on_server <= 0);
-                            heartIcon.classList.toggle('text-gray-400', data.current_likes_on_server <= 0);
-                        } else {
-                           // Якщо сервер повернув success: false, перезавантажуємо початкові лайки, щоб синхронізувати
-                           loadInitialLikes(); 
                         }
-                    })
-                    .catch(error => {
-                        console.error(`Помилка fetch (лайк/анлайк) для ${itemId}:`, error);
-                    });
+                    } else {
+                       console.error("Помилка на сервері при спробі лайкнути:", data.message);
+                       loadInitialLikes();
+                    }
+                })
+                .catch(error => {
+                    console.error(`Помилка fetch (лайк/анлайк) для ${itemId}:`, error);
+                    loadInitialLikes();
                 });
             });
-        }
+        });
+
+        // Викликаємо функцію завантаження лайків при завантаженні сторінки
+        loadInitialLikes();
         
         // ----- КОД ДЛЯ АНІМАЦІЇ КУЛЬОК (ВИЗНАЧЕННЯ ФУНКЦІЙ) -----
         const balloonContainer = document.getElementById('balloon-container');
