@@ -164,42 +164,6 @@
     transform: rotate(180deg);
 }
 
- /* Стилі для модального вікна таймера */
-        #timerModal {
-            transition: opacity 0.4s ease-in-out;
-        }
-        #timerModal.active {
-            display: flex;
-            opacity: 1;
-        }
-#timerModalContent {
-    /* background-image: url('{% static "img/party_time.JPG" %}');  <-- Цей рядок вже є у вас в інлайн-стилі HTML, тому тут його можна не дублювати */
-    background-size: contain;  /* Показує все зображення, зберігаючи пропорції */
-    background-position: center; /* Центрує зображення */
-    background-repeat: no-repeat; /* Забороняє повторення зображення */
-
-}
-
-/* Контейнер для зображення та тексту всередині модального вікна */
-#timerModalImageFrame {
-    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out; /* Анімація масштабування та прозорості */
-    transform: scale(0.9); /* Початковий стан - трохи зменшений */
-    opacity: 0; /* Початково прозорий */
-}
-
-#timerModal.active #timerModalImageFrame {
-    transform: scale(1); /* Кінцевий стан - нормальний розмір */
-    opacity: 1; /* Стає видимим */
-}
-
-/* Стилі для головного модального вікна #timerModal (залишаються як були або перевірте) */
-#timerModal {
-    transition: opacity 0.4s ease-in-out; /* Цей transition для затемнення фону */
-}
-#timerModal.active {
-    display: flex; /* Залишаємо flex для центрування #timerModalImageFrame */
-    opacity: 1;
-}
     </style>
     <meta name="description" content="Discover the world of digital art from ToEternity. Unique art, exclusive collections of clothing and furniture for IMVU. Order personalized works.">
 </head>
@@ -532,43 +496,6 @@
         </div>
     </section>
     
-<div id="persistent-timer-widget" class="fixed bottom-5 right-5 bg-gray-800 p-4 rounded-lg shadow-xl z-40 w-auto"> 
-    <div class="relative z-0"> <p class="text-xs text-gray-700 mb-1 text-center font-semibold">Party:</p> <div id="widget-countdown" class="text-xl font-bold text-gray-300 mb-3 text-center"> <span id="widget-days">00</span>d : 
-            <span id="widget-hours">00</span>h : 
-            <span id="widget-minutes">00</span>m :
-            <span id="widget-seconds">00</span>s
-        </div>
-        <button id="view-more-timer-button" class="w-full bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold py-2 px-3 rounded-md transition-colors duration-300">
-    More
-</button>
-    </div>
-</div>
-
-<div id="timerModal" class="fixed inset-0 bg-black bg-opacity-75 justify-center items-center p-4 z-[100] hidden opacity-0">
-    
-    <div id="timerModalImageFrame" class="relative inline-block shadow-2xl rounded-xl"> 
-        
-        <img src="{% static 'img/party_time.JPG' %}" alt="Party Time Background" 
-             class="block rounded-xl object-contain max-w-[90vw] sm:max-w-md md:max-w-lg lg:max-w-xl max-h-[85vh]">
-             <div class="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4 md:p-6 overflow-y-auto rounded-xl">
-            <div class="absolute inset-0 bg-black opacity-40 rounded-xl -z-10"></div>
-            
-            <div class="relative z-10"> 
-                <p class="text-base md:text-lg mb-3 md:mb-6 drop-shadow-sm">
-                    <br><br><br>Party will start soon. <br> Keep an eye on the timer!
-                </p>
-                <div id="modal-countdown" class="text-2xl md:text-4xl font-bold mb-3 md:mb-6 drop-shadow-md">00d:00h:00m</div><br><br><br><br><br><br><br><br>
-                <a href="https://go.imvu.com/chat/room-354869359-930" target="_blank" 
-                   class="inline-block bg-gray-800 hover:text-gray-300 font-semibold py-2 px-4 md:py-3 md:px-8 rounded-lg shadow-md hover:bg-gray-100 transition duration-300 text-sm md:text-lg">
-                    Goin room 
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <button id="closeTimerModalButton" class="absolute top-3 right-3 sm:top-5 sm:right-5 text-white text-4xl hover:text-gray-300 focus:outline-none z-[110]">&times;</button>
-</div>
-
     <footer class="bg-gray-800 text-gray-300 py-10">
         <div class="container mx-auto px-6 text-center">
             <p class="text-sm">© <span id="currentYear"></span> ToEternity.shop All rights reserved.</p>
@@ -1019,116 +946,6 @@
 
 // Кінець document.addEventListener('DOMContentLoaded', ...
 
-// ======================================================
-// ===== ЛОГІКА ТАЙМЕРА ЗВОРОТНОГО ВІДЛІКУ (ОНОВЛЕНА) =====
-// ======================================================
-
-// Ваша дата запуску: 6 червня 2025 року, 20:00
-const launchDate = new Date(2025, 5, 7, 20, 0, 0).getTime(); // Червень = 5
-
-// Елементи для відображення часу У ВІДЖЕТІ (нові)
-const widgetDaysEl = document.getElementById('widget-days');
-const widgetHoursEl = document.getElementById('widget-hours');
-const widgetMinutesEl = document.getElementById('widget-minutes');
-const widgetSecondsEl = document.getElementById('widget-seconds');
-
-// Елемент для відображення часу В МОДАЛЬНОМУ ВІКНІ (залишається)
-const modalCountdownEl = document.getElementById('modal-countdown');
-
-// Елемент, де був старий таймер на всю ширину (його більше немає, але JS перевірить)
-const countdownTimerDisplay = document.getElementById('countdown-timer'); 
-
-const countdownInterval = setInterval(() => {
-    const now = new Date().getTime();
-    const distance = launchDate - now;
-
-    const formatTime = (time) => time < 10 ? `0${time}` : time;
-
-    if (distance < 0) {
-        clearInterval(countdownInterval);
-        const siteLaunchedMsg = "<div class='text-xl text-gray-300'>Сайт запущено!</div>";
-        
-        // Оновлюємо віджет
-        const persistentWidgetCountdown = document.getElementById('widget-countdown');
-        if (persistentWidgetCountdown) persistentWidgetCountdown.innerHTML = siteLaunchedMsg;
-        
-        // Оновлюємо модальне вікно
-        if (modalCountdownEl) modalCountdownEl.innerHTML = "Сайт запущено!";
-
-        // Ховаємо кнопку "Дізнатись більше" у віджеті, оскільки відлік завершено
-        const viewMoreButton = document.getElementById('view-more-timer-button');
-        if(viewMoreButton) viewMoreButton.style.display = 'none';
-
-        // Старий таймер на всю ширину (якщо б він був)
-        if (countdownTimerDisplay) countdownTimerDisplay.innerHTML = siteLaunchedMsg.replace('text-xl', 'text-3xl'); 
-        
-        return;
-    }
-
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    // Оновлюємо час у ВІДЖЕТІ
-    if (widgetDaysEl) widgetDaysEl.innerText = formatTime(days);
-    if (widgetHoursEl) widgetHoursEl.innerText = formatTime(hours);
-    if (widgetMinutesEl) widgetMinutesEl.innerText = formatTime(minutes);
-    if (widgetSecondsEl) widgetSecondsEl.innerText = formatTime(seconds);
-    
-    // Оновлюємо час у МОДАЛЬНОМУ ВІКНІ
-    if (modalCountdownEl) {
-        modalCountdownEl.innerText = `${formatTime(days)}d : ${formatTime(hours)}h : ${formatTime(minutes)}m : ${formatTime(seconds)}s`;
-    }
-
-    // Елементи старого таймера (daysEl, hoursEl і т.д.) - JavaScript їх не знайде і проігнорує,
-    // оскільки ми видалили відповідний HTML. Це нормально.
-
-}, 1000);
-
-// Логіка для модального вікна таймера (оновлений тригер)
-const viewMoreTimerButton = document.getElementById('view-more-timer-button'); // Нова кнопка
-const timerModal = document.getElementById('timerModal');
-const closeTimerModalButton = document.getElementById('closeTimerModalButton');
-
-// Видаляємо старий обробник, якщо він був для countdown-section
-const oldCountdownSection = document.getElementById('countdown-section');
-if (oldCountdownSection) {
-    // Якщо ви пам'ятаєте назву функції обробника, краще видалити її через removeEventListener
-    // Але оскільки ми видалили саму секцію, цей код вже не потрібен.
-    // Я залишу його закоментованим для інформації:
-    // oldCountdownSection.removeEventListener('click', openTimerModal); 
-}
-
-if (viewMoreTimerButton && timerModal && closeTimerModalButton) {
-    const openTimerModal = () => {
-        if (launchDate - new Date().getTime() < 0) {
-             // Якщо відлік завершено, можна або не відкривати, або показати інший вміст.
-             // Для простоти поки не відкриваємо.
-            return; 
-        }
-        timerModal.classList.remove('hidden');
-        setTimeout(() => timerModal.classList.add('active'), 10);
-    };
-
-    const closeTimerModal = () => {
-        timerModal.classList.remove('active');
-        setTimeout(() => timerModal.classList.add('hidden'), 400);
-    };
-
-    viewMoreTimerButton.addEventListener('click', openTimerModal); // Прив'язуємо до нової кнопки
-    closeTimerModalButton.addEventListener('click', closeTimerModal);
-    timerModal.addEventListener('click', (e) => {
-        if (e.target === timerModal) {
-            closeTimerModal();
-        }
-    });
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && timerModal.classList.contains('active')) {
-            closeTimerModal();
-        }
-    });
-}
 
 </script>
 

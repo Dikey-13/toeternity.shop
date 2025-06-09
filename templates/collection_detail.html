@@ -72,6 +72,15 @@
         .details-toggle-button.expanded .fa-chevron-down {
             transform: rotate(180deg);
         }
+
+        /* ===== СТИЛІ ДЛЯ ГАЛЕРЕЇ/СЛАЙДЕРА ===== */
+.thumbnail-image {
+    transition: border-color 0.3s ease;
+}
+.thumbnail-image.active-thumbnail {
+    border-color: #a78bfa; /* violet-400 */
+}
+
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200">
@@ -164,10 +173,27 @@
     <main class="container mx-auto px-6 py-10">
         
         {% if collection_images %}
-        <div class="mb-8 rounded-lg overflow-hidden shadow-xl">
-            <img src="{{ collection_images.0.image.url }}" alt="Прев'ю колекції {{ collection.name }}" class="w-full h-auto md:h-[60vh] object-cover">
-            </div>
-        {% endif %}
+<div class="mb-8 rounded-lg overflow-hidden shadow-xl max-w-4xl mx-auto">
+    <div id="gallery-container" class="relative">
+        <img id="main-gallery-image" src="{{ collection_images.0.image.url }}" alt="{{ collection_images.0.caption|default:collection.name }}" class="w-full h-auto md:h-[70vh] object-contain bg-black">
+
+        <button id="prev-image-btn" class="absolute left-0 top-1/2 -translate-y-1/2 bg-black bg-opacity-40 text-white p-3 hover:bg-opacity-60 transition-opacity disabled:opacity-20 disabled:cursor-not-allowed">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button id="next-image-btn" class="absolute right-0 top-1/2 -translate-y-1/2 bg-black bg-opacity-40 text-white p-3 hover:bg-opacity-60 transition-opacity disabled:opacity-20 disabled:cursor-not-allowed">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <div id="thumbnails-container" class="flex space-x-2 p-2 bg-gray-800 overflow-x-auto">
+        {% for image_obj in collection_images %}
+            <img src="{{ image_obj.image.url }}" 
+                 alt="Мініатюра {{ forloop.counter }}" 
+                 class="thumbnail-image h-16 w-16 md:h-20 md:w-20 object-cover cursor-pointer rounded-md border-2 border-transparent"
+                 data-index="{{ forloop.counter0 }}"> {% endfor %}
+    </div>
+</div>
+{% endif %}
 
         <div class="bg-slate-800 p-6 md:p-8 rounded-lg shadow-xl max-w-4xl mx-auto">
             <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 text-center">{{ collection.name }}</h1>
@@ -410,6 +436,63 @@
         // Викликаємо функцію завантаження лайків при завантаженні сторінки
         loadInitialLikes();
     });
+
+// ===== ЛОГІКА ДЛЯ ГАЛЕРЕЇ/СЛАЙДЕРА ЗОБРАЖЕНЬ =====
+const galleryContainer = document.getElementById('gallery-container');
+if (galleryContainer) {
+    const mainImage = document.getElementById('main-gallery-image');
+    const prevBtn = document.getElementById('prev-image-btn');
+    const nextBtn = document.getElementById('next-image-btn');
+    const thumbnails = document.querySelectorAll('.thumbnail-image');
+
+    // Збираємо всі зображення та їхні підписи в масив
+    const images = Array.from(thumbnails).map(thumb => ({
+        src: thumb.src, // URL мініатюри, для повного розміру можна було б передати в data-атрибут
+        alt: thumb.alt.replace('Мініатюра', 'Зображення') // Формуємо alt для головного зображення
+    }));
+
+    let currentIndex = 0;
+
+    function showImage(index) {
+        if (index < 0 || index >= images.length || !mainImage) return;
+
+        currentIndex = index;
+        mainImage.src = images[index].src; // Міняємо головне зображення
+        mainImage.alt = images[index].alt;
+
+        // Оновлюємо активну мініатюру
+        thumbnails.forEach((thumb, i) => {
+            thumb.classList.toggle('active-thumbnail', i === currentIndex);
+        });
+
+        // Вимикаємо/вмикаємо кнопки "назад" та "вперед"
+        if (prevBtn) prevBtn.disabled = (currentIndex === 0);
+        if (nextBtn) nextBtn.disabled = (currentIndex === images.length - 1);
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            showImage(currentIndex + 1);
+        });
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            showImage(currentIndex - 1);
+        });
+    }
+
+    thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', () => {
+            const index = parseInt(thumb.dataset.index, 10);
+            showImage(index);
+        });
+    });
+
+    // Ініціалізуємо галерею, показуючи перше зображення як активне
+    showImage(0);
+}
+
 </script>
 </body>
 </html>
